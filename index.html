@@ -1,0 +1,3026 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CRA · Quotation Generator</title>
+
+<!-- PWA -->
+<meta name="application-name" content="CRA Quotations">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="CRA Quotes">
+<meta name="theme-color" content="#2a7a7a">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="manifest" id="pwaManifest">
+
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --teal: #2a7a7a;
+    --teal-dark: #1e5c5c;
+    --teal-light: #3a9090;
+    --teal-pale: #e8f4f4;
+    --copper: #b07848;
+    --copper-light: #c9935f;
+    --sand: #f5f0e8;
+    --sand-dark: #ede6d8;
+    --cream: #faf7f2;
+    --text: #2c2c2c;
+    --text-muted: #7a7060;
+    --white: #ffffff;
+    --border: #ddd5c5;
+    --shadow: 0 2px 20px rgba(42,122,122,0.08);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--sand);
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  /* HEADER */
+  .app-header {
+    background: var(--teal);
+    padding: 18px 32px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.15);
+  }
+
+  .logo-mark {
+    width: 44px;
+    height: 44px;
+    flex-shrink: 0;
+  }
+
+  .app-header-text h1 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 22px;
+    color: var(--white);
+    font-weight: 500;
+    letter-spacing: 0.01em;
+    line-height: 1.1;
+  }
+
+  .app-header-text p {
+    font-size: 10px;
+    color: rgba(255,255,255,0.65);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    font-weight: 500;
+    margin-top: 2px;
+  }
+
+  .header-badge {
+    margin-left: auto;
+    background: rgba(255,255,255,0.12);
+    border: 1px solid rgba(255,255,255,0.2);
+    color: rgba(255,255,255,0.9);
+    font-size: 11px;
+    padding: 5px 12px;
+    border-radius: 20px;
+    letter-spacing: 0.08em;
+    font-weight: 500;
+  }
+
+  /* LAYOUT */
+  .app-body {
+    display: grid;
+    grid-template-columns: 420px 1fr;
+    min-height: calc(100vh - 80px);
+    gap: 0;
+  }
+
+  /* LEFT PANEL - BUILDER */
+  .builder-panel {
+    background: var(--cream);
+    border-right: 1px solid var(--border);
+    padding: 28px 24px;
+    overflow-y: auto;
+    max-height: calc(100vh - 80px);
+    position: sticky;
+    top: 80px;
+  }
+
+  .section-label {
+    font-size: 9px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--copper);
+    font-weight: 600;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .section-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  .form-group {
+    margin-bottom: 16px;
+  }
+
+  .form-group label {
+    display: block;
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--text-muted);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+
+  .form-group input, .form-group select, .form-group textarea {
+    width: 100%;
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 13px;
+    font-size: 14px;
+    font-family: 'DM Sans', sans-serif;
+    color: var(--text);
+    transition: border-color 0.2s;
+    appearance: none;
+  }
+
+  .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+    outline: none;
+    border-color: var(--teal);
+    box-shadow: 0 0 0 3px rgba(42,122,122,0.08);
+  }
+
+  .form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  /* VEHICLE CARD PICKER */
+  .vehicle-type-tabs {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-bottom: 14px;
+  }
+
+  .type-tab {
+    padding: 6px 13px;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    background: var(--white);
+    color: var(--text-muted);
+    transition: all 0.15s;
+  }
+
+  .type-tab.active, .type-tab:hover {
+    background: var(--teal);
+    color: var(--white);
+    border-color: var(--teal);
+  }
+
+  .vehicle-cards {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-height: 280px;
+    overflow-y: auto;
+    padding-right: 4px;
+  }
+
+  .vehicle-cards::-webkit-scrollbar { width: 4px; }
+  .vehicle-cards::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+  .vehicle-card {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 14px;
+    cursor: pointer;
+    transition: all 0.15s;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .vehicle-card:hover { border-color: var(--teal-light); background: var(--teal-pale); }
+  .vehicle-card.selected { border-color: var(--teal); background: var(--teal-pale); box-shadow: 0 0 0 2px rgba(42,122,122,0.15); }
+
+  .vc-name {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--teal);
+    line-height: 1.1;
+  }
+
+  .vc-detail {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-top: 2px;
+  }
+
+  .vc-prices {
+    text-align: right;
+  }
+
+  .vc-price-main {
+    font-family: 'DM Mono', monospace;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--teal-dark);
+  }
+
+  .vc-price-label {
+    font-size: 9px;
+    color: var(--text-muted);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  /* RENTAL TYPE */
+  .rental-type-group {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+
+  .rental-type-btn {
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    cursor: pointer;
+    background: var(--white);
+    text-align: center;
+    transition: all 0.15s;
+  }
+
+  .rental-type-btn.active {
+    border-color: var(--teal);
+    background: var(--teal-pale);
+    box-shadow: 0 0 0 2px rgba(42,122,122,0.12);
+  }
+
+  .rtb-label {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--teal-dark);
+    display: block;
+  }
+
+  .rtb-sub {
+    font-size: 10px;
+    color: var(--text-muted);
+    margin-top: 2px;
+  }
+
+  /* ADD-ONS */
+  .addon-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 13px;
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    margin-bottom: 8px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .addon-row.active {
+    border-color: var(--teal);
+    background: var(--teal-pale);
+  }
+
+  .addon-check {
+    width: 18px;
+    height: 18px;
+    border-radius: 4px;
+    border: 2px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: all 0.15s;
+  }
+
+  .addon-row.active .addon-check {
+    background: var(--teal);
+    border-color: var(--teal);
+  }
+
+  .addon-check svg { display: none; }
+  .addon-row.active .addon-check svg { display: block; }
+
+  .addon-text { flex: 1; font-size: 13px; color: var(--text); }
+  .addon-price { font-family: 'DM Mono', monospace; font-size: 12px; color: var(--copper); font-weight: 500; }
+
+  /* DELIVERY SECTION */
+  .delivery-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  .delivery-option {
+    padding: 9px 12px;
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.15s;
+    text-align: left;
+  }
+
+  .delivery-option.active {
+    border-color: var(--teal);
+    background: var(--teal-pale);
+  }
+
+  .do-loc { font-size: 12px; font-weight: 500; color: var(--teal-dark); }
+  .do-price { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--copper); margin-top: 2px; }
+
+  /* DAYS */
+  .days-control {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 8px 14px;
+  }
+
+  .days-btn {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    border: 1px solid var(--border);
+    background: var(--sand);
+    cursor: pointer;
+    font-size: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--teal);
+    font-weight: 300;
+    transition: all 0.15s;
+    flex-shrink: 0;
+    line-height: 1;
+  }
+
+  .days-btn:hover { background: var(--teal); color: var(--white); border-color: var(--teal); }
+
+  .days-val {
+    font-family: 'DM Mono', monospace;
+    font-size: 20px;
+    font-weight: 500;
+    color: var(--teal);
+    min-width: 32px;
+    text-align: center;
+  }
+
+  .days-label { font-size: 12px; color: var(--text-muted); }
+
+  /* GENERATE BTN */
+  .generate-btn {
+    width: 100%;
+    padding: 14px;
+    background: var(--teal);
+    color: var(--white);
+    border: none;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    letter-spacing: 0.06em;
+    margin-top: 20px;
+    transition: all 0.2s;
+    font-family: 'DM Sans', sans-serif;
+  }
+
+  .generate-btn:hover { background: var(--teal-dark); transform: translateY(-1px); box-shadow: 0 4px 16px rgba(42,122,122,0.3); }
+  .generate-btn:active { transform: none; }
+
+  /* RIGHT PANEL - QUOTATION PREVIEW */
+  .quote-panel {
+    padding: 32px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: var(--sand);
+  }
+
+  .quote-panel-header {
+    width: 100%;
+    max-width: 680px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+
+  .qph-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 22px;
+    color: var(--text);
+    font-weight: 500;
+  }
+
+  .qph-actions {
+    display: flex;
+    gap: 10px;
+  }
+
+  .action-btn {
+    padding: 9px 18px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    transition: all 0.15s;
+    border: 1px solid var(--border);
+    background: var(--white);
+    color: var(--text-muted);
+  }
+
+  .action-btn:hover { border-color: var(--teal); color: var(--teal); }
+
+  .action-btn.primary {
+    background: var(--copper);
+    color: var(--white);
+    border-color: var(--copper);
+  }
+
+  .action-btn.primary:hover { background: var(--copper-light); border-color: var(--copper-light); }
+
+  /* QUOTATION DOCUMENT */
+  .quote-doc {
+    width: 100%;
+    max-width: 680px;
+    background: var(--white);
+    border-radius: 16px;
+    box-shadow: var(--shadow), 0 8px 40px rgba(42,122,122,0.06);
+    overflow: hidden;
+    position: relative;
+  }
+
+  /* DOC HEADER */
+  .doc-header {
+    background: var(--teal);
+    padding: 32px 40px 28px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .doc-header::before {
+    content: '';
+    position: absolute;
+    right: -30px;
+    top: -30px;
+    width: 160px;
+    height: 160px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.05);
+  }
+
+  .doc-header::after {
+    content: '';
+    position: absolute;
+    right: 40px;
+    bottom: -50px;
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.04);
+  }
+
+  .doc-header-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 20px;
+  }
+
+  .doc-brand { display: flex; align-items: center; gap: 12px; }
+
+  .doc-logo {
+    width: 48px;
+    height: 48px;
+    flex-shrink: 0;
+  }
+
+  .doc-brand-text h2 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 20px;
+    color: var(--white);
+    font-weight: 500;
+    line-height: 1;
+  }
+
+  .doc-brand-text p {
+    font-size: 9px;
+    color: rgba(255,255,255,0.6);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-top: 3px;
+  }
+
+  .doc-quote-no {
+    text-align: right;
+  }
+
+  .doc-quote-no .label {
+    font-size: 9px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.5);
+  }
+
+  .doc-quote-no .value {
+    font-family: 'DM Mono', monospace;
+    font-size: 18px;
+    color: var(--white);
+    font-weight: 500;
+    margin-top: 2px;
+  }
+
+  .doc-title-row {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+  }
+
+  .doc-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 32px;
+    color: var(--white);
+    font-weight: 400;
+    letter-spacing: 0.01em;
+    line-height: 1;
+  }
+
+  .doc-date {
+    font-size: 11px;
+    color: rgba(255,255,255,0.65);
+    font-weight: 400;
+    text-align: right;
+  }
+
+  /* DOC BODY */
+  .doc-body {
+    padding: 32px 40px;
+  }
+
+  .doc-section {
+    margin-bottom: 24px;
+  }
+
+  .doc-section-title {
+    font-size: 9px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--copper);
+    font-weight: 600;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .doc-section-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--sand-dark);
+  }
+
+  /* CLIENT INFO */
+  .client-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 16px;
+  }
+
+  .client-field { }
+  .client-field .cf-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-muted);
+    margin-bottom: 3px;
+  }
+  .client-field .cf-value {
+    font-size: 14px;
+    color: var(--text);
+    font-weight: 500;
+  }
+
+  /* VEHICLE SUMMARY BOX */
+  .vehicle-summary-box {
+    background: var(--teal-pale);
+    border: 1px solid rgba(42,122,122,0.15);
+    border-radius: 12px;
+    padding: 20px 22px;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 16px;
+    align-items: center;
+  }
+
+  .vsb-name {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 26px;
+    color: var(--teal);
+    font-weight: 600;
+    line-height: 1;
+  }
+
+  .vsb-detail {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-top: 4px;
+  }
+
+  .vsb-rate {
+    text-align: right;
+  }
+
+  .vsb-rate .rate-val {
+    font-family: 'DM Mono', monospace;
+    font-size: 22px;
+    font-weight: 500;
+    color: var(--teal-dark);
+  }
+
+  .vsb-rate .rate-label {
+    font-size: 10px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-top: 2px;
+  }
+
+  /* LINE ITEMS TABLE */
+  .line-items {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  .line-items th {
+    font-size: 9px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    font-weight: 600;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--sand-dark);
+    text-align: left;
+  }
+
+  .line-items th:last-child { text-align: right; }
+
+  .line-items td {
+    padding: 10px 0;
+    font-size: 13px;
+    color: var(--text);
+    border-bottom: 1px solid var(--sand-dark);
+    vertical-align: top;
+  }
+
+  .line-items td:last-child {
+    text-align: right;
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    color: var(--text);
+    font-weight: 500;
+  }
+
+  .line-items tr.subtotal td {
+    border-bottom: none;
+    padding-top: 14px;
+    color: var(--text-muted);
+    font-size: 12px;
+  }
+
+  .line-items tr.total-row td {
+    border-bottom: none;
+    padding-top: 12px;
+    padding-bottom: 0;
+  }
+
+  .total-label {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  .total-value {
+    font-family: 'DM Mono', monospace;
+    font-size: 22px;
+    font-weight: 500;
+    color: var(--teal);
+  }
+
+  /* TOTALS BOX */
+  .totals-box {
+    background: var(--sand);
+    border-radius: 10px;
+    padding: 18px 20px;
+    margin-top: 20px;
+  }
+
+  .totals-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 0;
+    font-size: 13px;
+    color: var(--text-muted);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .totals-row:last-child { border-bottom: none; }
+
+  .totals-row.grand {
+    padding-top: 12px;
+    color: var(--text);
+  }
+
+  .totals-row.grand .tr-label {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 20px;
+    font-weight: 600;
+  }
+
+  .totals-row.grand .tr-value {
+    font-family: 'DM Mono', monospace;
+    font-size: 22px;
+    font-weight: 500;
+    color: var(--teal);
+  }
+
+  .tr-label { font-weight: 500; }
+  .tr-value { font-family: 'DM Mono', monospace; font-weight: 500; }
+
+  /* DEPOSIT NOTE */
+  .deposit-note {
+    background: rgba(176,120,72,0.08);
+    border: 1px solid rgba(176,120,72,0.2);
+    border-radius: 8px;
+    padding: 12px 16px;
+    margin-top: 16px;
+    font-size: 12px;
+    color: var(--text-muted);
+    line-height: 1.5;
+  }
+
+  .deposit-note strong { color: var(--copper); font-weight: 600; }
+
+  /* NOTES FIELD */
+  .quote-notes {
+    border: 1px dashed var(--border);
+    border-radius: 8px;
+    padding: 14px 16px;
+    font-size: 12px;
+    color: var(--text-muted);
+    line-height: 1.6;
+    min-height: 60px;
+    font-style: italic;
+  }
+
+  /* DOC FOOTER */
+  .doc-footer {
+    background: var(--teal);
+    padding: 18px 40px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .doc-footer-tag {
+    font-size: 10px;
+    color: rgba(255,255,255,0.6);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .doc-footer-hashtag {
+    font-size: 11px;
+    color: rgba(255,255,255,0.5);
+    letter-spacing: 0.08em;
+  }
+
+  /* EMPTY STATE */
+  .empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 40px;
+    text-align: center;
+  }
+
+  .empty-icon {
+    font-size: 40px;
+    margin-bottom: 16px;
+    opacity: 0.4;
+  }
+
+  .empty-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 22px;
+    color: var(--text-muted);
+    font-weight: 500;
+    margin-bottom: 8px;
+  }
+
+  .empty-sub {
+    font-size: 13px;
+    color: var(--text-muted);
+    opacity: 0.7;
+    max-width: 280px;
+  }
+
+  /* SCROLL STYLING */
+  .builder-panel::-webkit-scrollbar { width: 4px; }
+  .builder-panel::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+  /* NOTES TEXTAREA */
+  .form-group textarea {
+    resize: vertical;
+    min-height: 70px;
+    line-height: 1.5;
+  }
+
+  /* PAYMENT SCHEDULE */
+  .payment-schedule {
+    margin-top: 20px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+
+  .ps-header {
+    background: var(--teal);
+    color: var(--white);
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    font-weight: 600;
+    padding: 10px 20px;
+  }
+
+  .ps-block {
+    display: flex;
+    gap: 16px;
+    padding: 16px 20px;
+    align-items: flex-start;
+  }
+
+  .ps-block--due-now {
+    background: rgba(176,120,72,0.06);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .ps-block--due-pickup {
+    background: rgba(42,122,122,0.04);
+  }
+
+  .ps-step {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 700;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  .ps-block--due-now .ps-step {
+    background: var(--copper);
+    color: var(--white);
+  }
+
+  .ps-block--due-pickup .ps-step {
+    background: var(--teal);
+    color: var(--white);
+  }
+
+  .ps-content { flex: 1; }
+
+  .ps-title {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .ps-tag {
+    font-size: 9px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-weight: 600;
+  }
+
+  .ps-tag--now {
+    background: rgba(176,120,72,0.15);
+    color: var(--copper);
+  }
+
+  .ps-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 5px 0;
+    font-size: 13px;
+    color: var(--text-muted);
+  }
+
+  .ps-row--total {
+    font-weight: 600;
+    color: var(--text);
+    padding-top: 8px;
+  }
+
+  .ps-amount {
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text);
+  }
+
+  .ps-row--total .ps-amount {
+    color: var(--teal);
+    font-size: 15px;
+  }
+
+  .ps-divider {
+    height: 1px;
+    background: var(--border);
+    margin: 8px 0 4px;
+  }
+
+  .ps-footer {
+    background: var(--sand-dark);
+    padding: 10px 20px;
+    font-size: 11px;
+    color: var(--text-muted);
+    line-height: 1.5;
+    border-top: 1px solid var(--border);
+  }
+
+  .quote-disclaimer {
+    margin-top: 14px;
+    background: rgba(255,200,0,0.07);
+    border: 1px solid rgba(200,160,0,0.2);
+    border-radius: 8px;
+    padding: 11px 16px;
+    font-size: 11.5px;
+    color: var(--text-muted);
+    line-height: 1.6;
+  }
+
+  .quote-disclaimer strong {
+    color: var(--text);
+    font-weight: 600;
+  }
+
+  /* TERMS & CONDITIONS */
+  .tnc-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+
+  .tnc-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 9px 14px;
+    border-bottom: 1px solid var(--sand-dark);
+  }
+
+  .tnc-item:last-child { border-bottom: none; }
+  .tnc-item:nth-child(even) { background: var(--sand); }
+
+  .tnc-num {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 15px;
+    color: var(--copper);
+    font-weight: 500;
+    min-width: 22px;
+    padding-top: 1px;
+    flex-shrink: 0;
+  }
+
+  .tnc-title {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--teal);
+    margin-bottom: 2px;
+  }
+
+  .tnc-body {
+    font-size: 11px;
+    color: var(--text-muted);
+    line-height: 1.5;
+  }
+
+  .tnc-footer {
+    background: var(--teal);
+    color: rgba(255,255,255,0.7);
+    text-align: center;
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    padding: 8px 14px;
+    border-radius: 0 0 10px 10px;
+    margin-top: 0;
+  }
+
+  /* SERVICE BADGES */
+  .service-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+  }
+
+  .service-badge--delivery {
+    background: rgba(176,120,72,0.1);
+    border: 1px solid rgba(176,120,72,0.3);
+    color: var(--copper);
+  }
+
+  .service-badge--collection {
+    background: rgba(42,122,122,0.1);
+    border: 1px solid rgba(42,122,122,0.25);
+    color: var(--teal-dark);
+  }
+
+  /* DATE PICKER */
+  .date-picker-wrap {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 13px;
+    cursor: pointer;
+    position: relative;
+    transition: border-color 0.2s;
+    min-height: 42px;
+  }
+
+  .date-picker-wrap:hover { border-color: var(--teal); }
+
+  .date-picker-text {
+    font-size: 14px;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+  }
+
+  .date-picker-text:empty::before {
+    content: 'Select date';
+    color: var(--text-muted);
+    opacity: 0.6;
+  }
+
+  .date-picker-icon {
+    font-size: 15px;
+    opacity: 0.5;
+    flex-shrink: 0;
+    margin-left: 8px;
+  }
+
+  .date-picker-hidden {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    cursor: pointer;
+    z-index: 1;
+  }
+
+  /* LOGISTICS BLOCKS */
+  .logistics-block {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px;
+  }
+
+  .logistics-block-title {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--teal-dark);
+    margin-bottom: 14px;
+    letter-spacing: 0.02em;
+  }
+
+  .logistics-mode-group {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  .logistics-mode-btn {
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    cursor: pointer;
+    background: var(--sand);
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    transition: all 0.15s;
+  }
+
+  .logistics-mode-btn:hover { border-color: var(--teal-light); background: var(--teal-pale); }
+
+  .logistics-mode-btn.active {
+    border-color: var(--teal);
+    background: var(--teal-pale);
+    box-shadow: 0 0 0 2px rgba(42,122,122,0.12);
+  }
+
+  /* PRICE OVERRIDE */
+  .price-override {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px dashed var(--border);
+    flex-wrap: wrap;
+  }
+
+  .po-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--copper);
+    font-weight: 600;
+    flex-shrink: 0;
+  }
+
+  .po-input-wrap {
+    display: flex;
+    align-items: center;
+    background: var(--white);
+    border: 1px solid var(--copper);
+    border-radius: 6px;
+    overflow: hidden;
+    flex: 1;
+    min-width: 100px;
+    max-width: 140px;
+  }
+
+  .po-peso {
+    padding: 0 7px;
+    font-size: 13px;
+    color: var(--copper);
+    font-weight: 600;
+    background: rgba(176,120,72,0.08);
+    align-self: stretch;
+    display: flex;
+    align-items: center;
+  }
+
+  .po-input {
+    border: none !important;
+    outline: none !important;
+    box-shadow: none !important;
+    padding: 6px 8px !important;
+    font-family: 'DM Mono', monospace !important;
+    font-size: 13px !important;
+    color: var(--text) !important;
+    width: 100% !important;
+    background: transparent !important;
+  }
+
+  .po-reset {
+    font-size: 10px;
+    color: var(--text-muted);
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    padding: 4px 8px;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    flex-shrink: 0;
+  }
+
+  .po-reset:hover { border-color: var(--teal); color: var(--teal); }
+
+  .price-overridden {
+    color: var(--copper) !important;
+  }
+
+  /* HIDDEN */
+  .hidden { display: none !important; }
+
+  @media print {
+    * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+
+    @page { size: A4 portrait; margin: 0; }
+
+    html, body { width: 210mm; height: 297mm; margin: 0; padding: 0; background: white; }
+
+    .app-header, .builder-panel, .quote-panel-header,
+    div[style*="quotation only"] { display: none !important; }
+
+    .app-body { display: block; }
+
+    .quote-panel { padding: 0; display: block; }
+
+    .quote-doc {
+      box-shadow: none;
+      border-radius: 0;
+      width: 210mm;
+      max-width: 210mm;
+      min-height: 297mm;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Tighten doc header */
+    .doc-header { padding: 18px 28px 14px; }
+    .doc-brand-text h2 { font-size: 16px; }
+    .doc-brand-text p { font-size: 8px; }
+    .doc-title { font-size: 24px; }
+    .doc-date { font-size: 10px; }
+    .doc-logo { width: 36px; height: 36px; }
+
+    /* Tighten body */
+    .doc-body { padding: 16px 28px; flex: 1; }
+    .doc-section { margin-bottom: 12px; }
+    .doc-section-title { font-size: 8px; margin-bottom: 8px; }
+
+    /* Client grid */
+    .client-grid { gap: 10px; }
+    .cf-label { font-size: 9px; }
+    .cf-value { font-size: 12px; }
+
+    /* Vehicle box */
+    .vehicle-summary-box { padding: 12px 16px; border-radius: 8px; }
+    .vsb-name { font-size: 20px; }
+    .vsb-detail { font-size: 10px; }
+    .vsb-rate .rate-val { font-size: 18px; }
+    .vsb-rate .rate-label { font-size: 9px; }
+
+    /* Line items */
+    .line-items th { font-size: 8px; padding: 5px 0; }
+    .line-items td { font-size: 11px; padding: 6px 0; }
+    .line-items td:last-child { font-size: 11px; }
+
+    /* Totals box */
+    .totals-box { padding: 10px 14px; margin-top: 10px; border-radius: 8px; }
+    .total-label { font-size: 16px; }
+    .total-value { font-size: 18px; }
+
+    /* Payment schedule */
+    .payment-schedule { margin-top: 10px; border-radius: 8px; }
+    .ps-header { padding: 7px 16px; font-size: 9px; }
+    .ps-block { padding: 10px 16px; gap: 12px; }
+    .ps-step { width: 20px; height: 20px; font-size: 10px; }
+    .ps-title { font-size: 11px; margin-bottom: 6px; }
+    .ps-row { font-size: 11px; padding: 3px 0; }
+    .ps-row--total .ps-amount { font-size: 13px; }
+    .ps-footer { padding: 7px 16px; font-size: 10px; }
+    .ps-divider { margin: 5px 0 3px; }
+
+    /* T&C */
+    .tnc-item { padding: 6px 12px; }
+    .tnc-num { font-size: 12px; }
+    .tnc-title { font-size: 9px; }
+    .tnc-body { font-size: 10px; }
+    .tnc-footer { font-size: 9px; padding: 6px; }
+
+    /* Disclaimer */
+    .quote-disclaimer { margin-top: 10px; padding: 8px 14px; font-size: 10px; border-radius: 6px; }
+
+    /* Footer */
+    .doc-footer { padding: 12px 28px; }
+    .doc-footer-tag { font-size: 9px; }
+    .doc-footer-hashtag { font-size: 9px; }
+
+    /* Notes */
+    .quote-notes { font-size: 10px; padding: 10px 12px; min-height: 40px; }
+  }
+</style>
+</head>
+<body>
+
+<header class="app-header">
+  <svg class="logo-mark" viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="22" cy="22" r="20" fill="rgba(255,255,255,0.12)" stroke="rgba(255,255,255,0.25)" stroke-width="1"/>
+    <path d="M22 8 C14 8 8 14.5 8 22 C8 29.5 14 36 22 36" stroke="rgba(255,255,255,0.4)" stroke-width="1.5" fill="none"/>
+    <path d="M10 22 Q16 14 22 18 Q28 22 22 30 Q16 36 10 28" fill="rgba(176,120,72,0.6)" stroke="rgba(176,120,72,0.8)" stroke-width="0.5"/>
+    <path d="M22 10 Q30 16 30 22 Q30 30 22 34" fill="none" stroke="rgba(255,255,255,0.5)" stroke-width="1.5"/>
+    <ellipse cx="22" cy="22" rx="8" ry="6" fill="rgba(255,255,255,0.15)"/>
+  </svg>
+  <div class="app-header-text">
+    <h1>Coastal Reef Adventure</h1>
+    <p>Quotation Management · Siargao</p>
+  </div>
+  <div class="header-badge">ERP v1.0</div>
+</header>
+
+<div style="background:rgba(176,120,72,0.1);border-bottom:1px solid rgba(176,120,72,0.2);padding:8px 32px;font-size:11.5px;color:var(--copper);text-align:center;font-weight:500;">
+  📋 This tool generates <strong>quotations only</strong> — all rates are final subject to unit availability upon booking confirmation.
+</div>
+
+<div class="app-body">
+
+  <!-- LEFT: BUILDER -->
+  <div class="builder-panel">
+
+    <!-- CLIENT INFO -->
+    <div class="section-label">Client Details</div>
+    <div class="form-group">
+      <label>Customer Name</label>
+      <input type="text" id="clientName" placeholder="e.g. Maria Santos" />
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Contact Number</label>
+        <input type="text" id="clientContact" placeholder="+63 9XX XXX XXXX" />
+      </div>
+      <div class="form-group">
+        <label>Email Address</label>
+        <input type="text" id="clientEmail" placeholder="email@example.com" />
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Rental Start</label>
+        <div class="date-picker-wrap" onclick="document.getElementById('rentalStart').click()">
+          <span id="rentalStartDisplay" class="date-picker-text">Jun 18, 2026</span>
+          <span class="date-picker-icon">📅</span>
+          <input type="date" id="rentalStart" class="date-picker-hidden" />
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Scheduled Return</label>
+        <div class="date-picker-wrap" onclick="document.getElementById('rentalEnd').click()">
+          <span id="rentalEndDisplay" class="date-picker-text">Jun 18, 2026</span>
+          <span class="date-picker-icon">📅</span>
+          <input type="date" id="rentalEnd" class="date-picker-hidden" />
+        </div>
+      </div>
+    </div>
+    <div style="margin-bottom:14px;margin-top:6px">
+      <span id="dateSummary" style="display:none;background:var(--teal-pale);border:1px solid rgba(42,122,122,0.2);color:var(--teal-dark);font-size:11px;font-weight:600;padding:5px 12px;border-radius:20px;letter-spacing:0.04em"></span>
+    </div>
+    <div class="form-group">
+      <label>Hotel / Accommodation</label>
+      <input type="text" id="clientHotel" placeholder="e.g. Harana Surf Resort" />
+    </div>
+
+    <!-- SERVICE TYPE -->
+    <div class="section-label" style="margin-top:8px">Service Type</div>
+    <div class="vehicle-type-tabs" id="serviceTabs">
+      <button class="type-tab active" data-type="selfDrive">Self-Drive</button>
+      <button class="type-tab" data-type="transport">Airport Transfer</button>
+      <button class="type-tab" data-type="tour">Island Tour</button>
+    </div>
+
+    <!-- SELF-DRIVE SECTION -->
+    <div id="selfDriveSection">
+      <!-- VEHICLE CATEGORY -->
+      <div class="section-label">Vehicle Category</div>
+      <div class="vehicle-type-tabs" id="categoryTabs">
+        <button class="type-tab active" data-cat="jimny">Jimny</button>
+        <button class="type-tab" data-cat="spresso">S-Presso</button>
+        <button class="type-tab" data-cat="mpvsuv">MPV / SUV</button>
+        <button class="type-tab" data-cat="stargazer">Stargazer</button>
+      </div>
+
+      <div class="vehicle-cards" id="vehicleCards"></div>
+
+      <!-- RENTAL TYPE -->
+      <div class="section-label" style="margin-top:16px">Rental Type <span style="font-weight:400;color:var(--text-muted);text-transform:none;letter-spacing:0;font-size:10px">· auto from dates above</span></div>
+      <div class="rental-type-group">
+        <div class="rental-type-btn active" id="rtDayUse" style="cursor:default">
+          <span class="rtb-label">Day Use</span>
+          <span class="rtb-sub">7AM – 7PM · same day</span>
+        </div>
+        <div class="rental-type-btn" id="rt24hr" style="cursor:default">
+          <span class="rtb-label">24-Hour</span>
+          <span class="rtb-sub">Overnight rental</span>
+        </div>
+      </div>
+
+      <!-- DAYS -->
+      <div class="section-label">Number of Days <span style="font-weight:400;color:var(--text-muted);text-transform:none;letter-spacing:0;font-size:10px">· auto from dates above</span></div>
+      <div class="days-control" style="background:var(--sand);border-color:var(--border)">
+        <span style="font-size:16px">📅</span>
+        <span class="days-val" id="daysVal">1</span>
+        <span class="days-label">day(s)</span>
+      </div>
+
+      <!-- ADD-ONS -->
+      <div class="section-label" style="margin-top:16px">Add-ons</div>
+      <div class="addon-row" id="addonDriver" onclick="toggleAddon('driver')">
+        <div class="addon-check"><svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M1.5 5L4 7.5L8.5 2.5" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <span class="addon-text">Driver Service</span>
+        <span class="addon-price">+₱1,000/day</span>
+      </div>
+      <div id="driverNameSection" style="display:none;margin-top:-4px;margin-bottom:8px;">
+        <div class="form-group" style="margin-bottom:0">
+          <label>Driver Name</label>
+          <input type="text" id="driverName" placeholder="e.g. Juan dela Cruz" />
+        </div>
+      </div>
+
+      <!-- DELIVERY & PICKUP -->
+      <div class="section-label" style="margin-top:16px">Unit Release & Return</div>
+
+      <!-- DELIVERY BLOCK -->
+      <div class="logistics-block">
+        <div class="logistics-block-title">🚗 Unit Release — Start of Rental</div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Release Date</label>
+            <input type="text" id="deliveryDateDisplay" readonly style="background:var(--sand);color:var(--text-muted);cursor:default;" placeholder="Set rental start date above" />
+          </div>
+          <div class="form-group">
+            <label>Release Time</label>
+            <input type="time" id="deliveryTime" onchange="calcSurcharge(); syncDefaultTimes();" />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Release Mode</label>
+          <div class="logistics-mode-group">
+            <div class="logistics-mode-btn active" id="deliveryModeSelf" onclick="setDeliveryMode('self')">
+              <span style="font-weight:600;font-size:13px">Self Pick-up at Office</span>
+              <span style="font-size:11px;color:var(--teal);font-weight:600">FREE</span>
+            </div>
+            <div class="logistics-mode-btn" id="deliveryModeDeliver" onclick="setDeliveryMode('deliver')">
+              <span style="font-weight:600;font-size:13px">Deliver to Client</span>
+              <span style="font-size:11px;color:var(--copper)">+ delivery fee</span>
+            </div>
+          </div>
+        </div>
+
+        <div id="deliveryLocationFields" style="display:none">
+          <div class="form-group">
+            <label>Specific Address / Landmark</label>
+            <input type="text" id="deliveryAddress" placeholder="e.g. Harana Surf Resort, General Luna" oninput="state.deliveryAddress=this.value" />
+          </div>
+          <div class="form-group">
+            <label>Area / Rate Zone</label>
+            <select id="deliveryArea" onchange="updateDeliveryRate()">
+              <option value="">— Select area —</option>
+              <option value="General Luna|350">General Luna · ₱350</option>
+              <option value="Malinao · Libertad|900">Malinao / Libertad · ₱900</option>
+              <option value="Sta. Fe|1400">Sta. Fe · ₱1,400</option>
+              <option value="Dapa · Union|1700">Dapa / Union · ₱1,700</option>
+              <option value="Airport · Pilar · Maasin|2200">Airport / Pilar / Maasin · ₱2,200</option>
+              <option value="North · Pacifico|2700">North / Pacifico · ₱2,700</option>
+            </select>
+          </div>
+          <div id="deliveryRatePreview" style="display:none;background:var(--teal-pale);border:1px solid rgba(42,122,122,0.2);border-radius:8px;padding:9px 13px;font-size:12px;color:var(--teal-dark);margin-top:-8px;margin-bottom:4px;font-weight:500;"></div>
+        </div>
+
+        <!-- Out-of-office surcharge for delivery — inside delivery block -->
+        <div id="deliverySurchargeNote" style="display:none;font-size:11px;color:var(--copper);font-weight:500;margin-top:10px;padding:8px 11px;background:rgba(176,120,72,0.07);border-radius:6px;border:1px solid rgba(176,120,72,0.2);line-height:1.5;"></div>
+      </div>
+
+      <!-- PICKUP BLOCK -->
+      <div class="logistics-block" style="margin-top:12px">
+        <div class="logistics-block-title">🔄 Unit Return — End of Rental</div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Return Date</label>
+            <div class="date-picker-wrap" onclick="document.getElementById('returnDateInput').click()">
+              <span id="returnDateDisplay" class="date-picker-text"></span>
+              <span class="date-picker-icon">📅</span>
+              <input type="date" id="returnDateInput" class="date-picker-hidden" onchange="this.dataset.autoSet='false'; updateReturnDateDisplay(); calcSurcharge(); calcLateReturn();" />
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Return Time</label>
+            <input type="time" id="returnTime" onchange="this.dataset.manualSet='true'; calcSurcharge(); calcLateReturn();" />
+          </div>
+        </div>
+        <div id="dayUseDeadlineNote" style="display:none;font-size:11px;color:var(--teal-dark);font-weight:600;margin:-4px 0 10px;padding:6px 10px;background:var(--teal-pale);border-radius:6px;border:1px solid rgba(42,122,122,0.3);"></div>
+
+        <div class="form-group">
+          <label>Return Mode</label>
+          <div class="logistics-mode-group">
+            <div class="logistics-mode-btn active" id="returnModeOffice" onclick="setReturnMode('office')">
+              <span style="font-weight:600;font-size:13px">Client Returns to Office</span>
+              <span style="font-size:11px;color:var(--teal);font-weight:600">FREE</span>
+            </div>
+            <div class="logistics-mode-btn" id="returnModePickup" onclick="setReturnMode('pickup')">
+              <span style="font-weight:600;font-size:13px">We Pick Up from Client</span>
+              <span style="font-size:11px;color:var(--copper)">+ pick-up fee</span>
+            </div>
+          </div>
+        </div>
+
+        <div id="pickupLocationFields" style="display:none">
+          <div class="form-group">
+            <label>Specific Address / Landmark</label>
+            <input type="text" id="pickupAddress" placeholder="e.g. Alegria Beach Resort, GL" oninput="state.pickupAddress=this.value" />
+          </div>
+          <div class="form-group">
+            <label>Area / Rate Zone</label>
+            <select id="pickupArea" onchange="updatePickupRate()">
+              <option value="">— Select area —</option>
+              <option value="General Luna|350">General Luna · ₱350</option>
+              <option value="Malinao · Libertad|900">Malinao / Libertad · ₱900</option>
+              <option value="Sta. Fe|1400">Sta. Fe · ₱1,400</option>
+              <option value="Dapa · Union|1700">Dapa / Union · ₱1,700</option>
+              <option value="Airport · Pilar · Maasin|2200">Airport / Pilar / Maasin · ₱2,200</option>
+              <option value="North · Pacifico|2700">North / Pacifico · ₱2,700</option>
+            </select>
+          </div>
+          <div id="pickupRatePreview" style="display:none;background:var(--teal-pale);border:1px solid rgba(42,122,122,0.2);border-radius:8px;padding:9px 13px;font-size:12px;color:var(--teal-dark);margin-top:-8px;margin-bottom:4px;font-weight:500;"></div>
+        </div>
+
+        <!-- Out-of-office surcharge for return — inside return block -->
+        <div id="returnSurchargeNote" style="display:none;font-size:11px;color:var(--copper);font-weight:500;margin-top:10px;padding:8px 11px;background:rgba(176,120,72,0.07);border-radius:6px;border:1px solid rgba(176,120,72,0.2);line-height:1.5;"></div>
+      </div>
+
+      <!-- Combined total surcharge — outside both blocks, summarises delivery + return -->
+      <div id="totalSurchargePreview" style="display:none;margin-top:8px;background:rgba(176,120,72,0.13);border:1px solid rgba(176,120,72,0.3);border-radius:6px;padding:8px 11px;font-size:12px;color:var(--copper);font-weight:600;"></div>
+
+      <!-- LATE RETURN CHARGE -->
+      <div class="section-label" style="margin-top:16px">Late Return Charge <span style="font-weight:400;color:var(--text-muted);text-transform:none;letter-spacing:0;font-size:10px">(auto · 10% of daily rate/hr)</span></div>
+      <div style="font-size:11px;color:var(--text-muted);margin-bottom:10px;line-height:1.5;">Calculated from release time + rental days vs actual return. Fill in release time and return time above to auto-compute.</div>
+      <div id="lateReturnPreview" style="background:var(--sand);border:1px solid var(--border);border-radius:8px;padding:10px 13px;font-size:12px;color:var(--text-muted);line-height:1.6;">Enter release time and return time above to calculate.</div>
+    </div>
+
+    <!-- TRANSPORT SECTION -->
+    <div id="transportSection" class="hidden">
+      <div class="section-label">Select Vehicle</div>
+      <div class="vehicle-cards" id="transportCards"></div>
+      <div class="section-label" style="margin-top:16px">Number of Trips</div>
+      <div class="days-control">
+        <button class="days-btn" onclick="changeTrips(-1)">−</button>
+        <span class="days-val" id="tripsVal">1</span>
+        <span class="days-label">trip(s)</span>
+        <button class="days-btn" onclick="changeTrips(1)">+</button>
+      </div>
+      <div class="section-label" style="margin-top:16px">Extra Passengers</div>
+      <div class="days-control">
+        <button class="days-btn" onclick="changeExtraPax(-1)">−</button>
+        <span class="days-val" id="extraPaxVal">0</span>
+        <span class="days-label">extra pax (₱400 each)</span>
+        <button class="days-btn" onclick="changeExtraPax(1)">+</button>
+      </div>
+    </div>
+
+    <!-- TOUR SECTION -->
+    <div id="tourSection" class="hidden">
+      <div class="section-label">Select Vehicle</div>
+      <div class="vehicle-cards" id="tourCards"></div>
+      <div class="section-label" style="margin-top:16px">Number of Tours</div>
+      <div class="days-control">
+        <button class="days-btn" onclick="changeTours(-1)">−</button>
+        <span class="days-val" id="toursVal">1</span>
+        <span class="days-label">tour(s)</span>
+        <button class="days-btn" onclick="changeTours(1)">+</button>
+      </div>
+    </div>
+
+    <!-- DISCOUNT -->
+    <div class="section-label" style="margin-top:16px">Discount <span style="font-weight:400;color:var(--text-muted);text-transform:none;letter-spacing:0;font-size:10px">(optional)</span></div>
+    <div class="form-group">
+      <label>Discount Amount (₱)</label>
+      <input type="number" id="discountAmount" placeholder="e.g. 500" min="0" style="font-family:'DM Mono',monospace;" />
+    </div>
+    <div class="form-group">
+      <label>Discount Reason</label>
+      <input type="text" id="discountReason" placeholder="e.g. Returning customer, Promo, etc." />
+    </div>
+
+    <!-- NOTES -->
+    <div class="section-label" style="margin-top:16px">Internal Notes</div>
+    <div class="form-group">
+      <textarea id="quoteNotes" placeholder="Any special instructions, additional remarks, or notes for this quotation..."></textarea>
+    </div>
+
+    <button class="generate-btn" onclick="generateQuote()">Generate Quotation →</button>
+  </div>
+
+  <!-- RIGHT: QUOTATION PREVIEW -->
+  <div class="quote-panel">
+    <div class="quote-panel-header">
+      <span class="qph-title">Quotation Preview</span>
+      <div class="qph-actions">
+        <button class="action-btn" onclick="clearQuote()">Clear</button>
+        <button class="action-btn primary" onclick="window.print()">🖨 Print / Save PDF</button>
+      </div>
+    </div>
+
+    <!-- EMPTY STATE -->
+    <div id="emptyState" class="quote-doc">
+      <div class="empty-state">
+        <div class="empty-icon">📋</div>
+        <div class="empty-title">No quotation yet</div>
+        <div class="empty-sub">Fill in the client details and select a vehicle on the left, then click Generate Quotation.</div>
+      </div>
+    </div>
+
+    <!-- QUOTE DOC -->
+    <div id="quoteDoc" class="quote-doc hidden">
+      <div class="doc-header">
+        <div class="doc-header-top">
+          <div class="doc-brand">
+            <svg class="doc-logo" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="24" cy="24" r="22" fill="rgba(255,255,255,0.1)" stroke="rgba(255,255,255,0.3)" stroke-width="1"/>
+              <path d="M12 24 Q18 14 24 20 Q30 26 24 34 Q18 40 12 30" fill="rgba(176,120,72,0.7)" stroke="rgba(176,120,72,0.9)" stroke-width="0.5"/>
+              <path d="M24 10 Q34 17 34 24 Q34 33 24 38" fill="none" stroke="rgba(255,255,255,0.6)" stroke-width="2"/>
+              <ellipse cx="24" cy="24" rx="9" ry="7" fill="rgba(255,255,255,0.12)"/>
+            </svg>
+            <div class="doc-brand-text">
+              <h2>Coastal Reef Adventure</h2>
+              <p>Siargao's Pioneer Car Rental Fleet</p>
+            </div>
+          </div>
+        </div>
+        <div class="doc-title-row">
+          <div class="doc-title">Quotation</div>
+          <div class="doc-date" id="docDate"></div>
+        </div>
+      </div>
+
+      <div class="doc-body">
+
+        <!-- CLIENT -->
+        <div class="doc-section">
+          <div class="doc-section-title">Client Information</div>
+          <div class="client-grid">
+            <div class="client-field">
+              <div class="cf-label">Customer</div>
+              <div class="cf-value" id="docClient">—</div>
+            </div>
+            <div class="client-field">
+              <div class="cf-label">Contact</div>
+              <div class="cf-value" id="docContact">—</div>
+            </div>
+            <div class="client-field">
+              <div class="cf-label">Email</div>
+              <div class="cf-value" id="docEmail" style="font-size:12px;word-break:break-all">—</div>
+            </div>
+          </div>
+          <div style="margin-top:12px; display:grid; grid-template-columns:1fr 1fr 1fr 1fr; gap:16px">
+            <div class="client-field">
+              <div class="cf-label">Rental Start</div>
+              <div class="cf-value" id="docStart">—</div>
+            </div>
+            <div class="client-field">
+              <div class="cf-label">Scheduled Return</div>
+              <div class="cf-value" id="docEnd">—</div>
+            </div>
+            <div class="client-field" id="docActualReturnField">
+              <div class="cf-label">Actual Return</div>
+              <div class="cf-value" id="docActualReturn">—</div>
+            </div>
+            <div class="client-field">
+              <div class="cf-label">Accommodation</div>
+              <div class="cf-value" id="docHotel">—</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- VEHICLE -->
+        <div class="doc-section">
+          <div class="doc-section-title">Vehicle & Service</div>
+          <div class="vehicle-summary-box">
+            <div>
+              <div class="vsb-name" id="docVehicleName">—</div>
+              <div class="vsb-detail" id="docVehicleDetail">—</div>
+            </div>
+            <div class="vsb-rate">
+              <div class="rate-val" id="docVehicleRate">—</div>
+              <div class="rate-label" id="docVehicleRateLabel">per day</div>
+            </div>
+          </div>
+          <div id="docServiceBadges" style="display:none;margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;"></div>
+        </div>
+
+        <!-- LINE ITEMS -->
+        <div class="doc-section">
+          <div class="doc-section-title">Breakdown</div>
+          <table class="line-items">
+            <thead>
+              <tr>
+                <th>Description</th>
+                <th style="text-align:right">Amount</th>
+              </tr>
+            </thead>
+            <tbody id="lineItemsBody">
+            </tbody>
+          </table>
+        </div>
+
+        <!-- TOTALS -->
+        <div class="totals-box">
+          <div class="totals-row" id="totalRowSubtotal">
+            <span class="tr-label">Subtotal</span>
+            <span class="tr-value" id="docSubtotal">₱0</span>
+          </div>
+          <div class="totals-row" id="totalRowDiscount" style="display:none;color:#c0392b;">
+            <span class="tr-label" id="docDiscountLabel">Discount</span>
+            <span class="tr-value" id="docDiscount" style="color:#c0392b;">−₱0</span>
+          </div>
+          <div class="totals-row grand">
+            <span class="tr-label total-label">TOTAL</span>
+            <span class="tr-value total-value" id="docTotal">₱0</span>
+          </div>
+        </div>
+
+        <!-- PAYMENT SCHEDULE -->
+        <div class="payment-schedule">
+          <div class="ps-header">Payment Schedule</div>
+
+          <div class="ps-block ps-block--due-now">
+            <div class="ps-step">1</div>
+            <div class="ps-content">
+              <div class="ps-title">Due Now <span class="ps-tag ps-tag--now">to confirm booking</span></div>
+              <div class="ps-row">
+                <span class="ps-item">50% Down Payment</span>
+                <span class="ps-amount" id="docDownpayment">₱0</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="ps-block ps-block--due-pickup">
+            <div class="ps-step">2</div>
+            <div class="ps-content">
+              <div class="ps-title">Due Upon Pick-up</div>
+              <div class="ps-row">
+                <span class="ps-item">Remaining Balance (50%)</span>
+                <span class="ps-amount" id="docBalance">₱0</span>
+              </div>
+              <div class="ps-row">
+                <span class="ps-item">Security Deposit <span style="font-size:10px;opacity:0.7">(refundable)</span></span>
+                <span class="ps-amount">₱5,000</span>
+              </div>
+              <div class="ps-divider"></div>
+              <div class="ps-row ps-row--total">
+                <span class="ps-item">Total Due on Arrival</span>
+                <span class="ps-amount" id="docPickupTotal">₱0</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="ps-footer">
+            🪪 1 valid government ID or passport required upon pick-up · No cancellations · Rebooking allowed 5 days before rental date
+          </div>
+        </div>
+
+        <!-- DISCLAIMER -->
+        <div class="quote-disclaimer">
+          ⚠️ This is a <strong>quotation only</strong>. All rates indicated are subject to unit availability at the time of booking confirmation. Rates become final only upon confirmation that the selected unit is available.
+        </div>
+
+        <!-- TERMS & CONDITIONS -->
+        <div class="doc-section" style="margin-top:20px">
+          <div class="doc-section-title">Terms & Conditions</div>
+          <div class="tnc-grid">
+            <div class="tnc-item">
+              <span class="tnc-num">01</span>
+              <div><div class="tnc-title">Valid ID & Deposit</div><div class="tnc-body">Renter must present 1 valid government ID or passport plus a refundable cash security deposit of ₱5,000 upon release.</div></div>
+            </div>
+            <div class="tnc-item">
+              <span class="tnc-num">02</span>
+              <div><div class="tnc-title">Minimum Age</div><div class="tnc-body">Driver must be at least 18 years old with a valid driver's license. International renters must present a passport and home-country license.</div></div>
+            </div>
+            <div class="tnc-item">
+              <span class="tnc-num">03</span>
+              <div><div class="tnc-title">Fuel Policy</div><div class="tnc-body">Units are released on a full tank and must be returned with a full tank. Refueling fees apply if returned with less.</div></div>
+            </div>
+            <div class="tnc-item">
+              <span class="tnc-num">04</span>
+              <div><div class="tnc-title">Day Use Hours</div><div class="tnc-body">Day Use rentals are 12 hours from pickup time, capped at 7:00 PM. All units must be returned by 7:00 PM regardless of pickup time.</div></div>
+            </div>
+            <div class="tnc-item">
+              <span class="tnc-num">05</span>
+              <div><div class="tnc-title">Late Return</div><div class="tnc-body">A 30-minute grace period applies. Returns beyond the grace period incur a late return charge of 10% of the daily rate per hour, rounded up.</div></div>
+            </div>
+            <div class="tnc-item">
+              <span class="tnc-num">06</span>
+              <div><div class="tnc-title">Out-of-Office Hours Surcharge</div><div class="tnc-body">Office hours are 7:00 AM to 7:00 PM. Requests outside these hours incur a ₱50/hour surcharge, rounded up.</div></div>
+            </div>
+            <div class="tnc-item">
+              <span class="tnc-num">07</span>
+              <div><div class="tnc-title">Damage & Loss</div><div class="tnc-body">Renter is liable for any damage, loss, or theft during the rental period. Repair costs will be deducted from the security deposit or billed directly.</div></div>
+            </div>
+            <div class="tnc-item">
+              <span class="tnc-num">08</span>
+              <div><div class="tnc-title">Area Coverage</div><div class="tnc-body">Units are for use within Siargao Island only. Off-island travel is strictly prohibited.</div></div>
+            </div>
+            <div class="tnc-item">
+              <span class="tnc-num">09</span>
+              <div><div class="tnc-title">Prohibited Use</div><div class="tnc-body">No racing, off-roading beyond agreed terrain, smoking inside the unit, or sub-renting to third parties. Violations forfeit the deposit.</div></div>
+            </div>
+            <div class="tnc-item">
+              <span class="tnc-num">10</span>
+              <div><div class="tnc-title">Payment Terms</div><div class="tnc-body">A 50% reservation fee is required to confirm your booking. Full payment is due upon pickup of the rental unit.</div></div>
+            </div>
+            <div class="tnc-item">
+              <span class="tnc-num">11</span>
+              <div><div class="tnc-title">Cancellation & Rebooking</div><div class="tnc-body">No cancellations and no refunds. Rebooking is allowed if requested at least 5 days before the scheduled rental date.</div></div>
+            </div>
+          </div>
+          <div class="tnc-footer">by booking with us, you agree to these terms · #onoroffroadletsgo</div>
+        </div>
+
+        <!-- NOTES -->
+        <div id="notesSection" class="doc-section hidden">
+          <div class="doc-section-title" style="margin-top:20px">Notes</div>
+          <div class="quote-notes" id="docNotes"></div>
+        </div>
+
+      </div>
+
+      <div class="doc-footer">
+        <div class="doc-footer-tag">Coastal Reef Adventure · Siargao Island</div>
+        <div class="doc-footer-hashtag">#onoroffroadletsgo</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// =====================
+// DATA
+// =====================
+const VEHICLES = {
+  jimny: [
+    { id:'J6',  name:'J6',  year:2020, color:'Gray',                    detail:'3 Doors · Gasoline · Automatic', dayuse:3400, hr24:3900 },
+    { id:'J7',  name:'J7',  year:2022, color:'White',                   detail:'3 Doors · Gasoline · Automatic', dayuse:3400, hr24:3900 },
+    { id:'J23', name:'J23', year:2022, color:'Army Green',               detail:'3 Doors · Gasoline · Automatic', dayuse:3400, hr24:3900 },
+    { id:'J9',  name:'J9',  year:2022, color:'Kinetic Yellow',           detail:'3 Doors · Gasoline · Automatic', dayuse:3400, hr24:3900 },
+    { id:'J10', name:'J10', year:2021, color:'Gray × Orange',            detail:'3 Doors · Gasoline · Automatic', dayuse:3400, hr24:3900 },
+    { id:'J12', name:'J12', year:2023, color:'Chiffon Ivory',            detail:'3 Doors · Gasoline · Automatic', dayuse:3400, hr24:3900 },
+    { id:'J5',  name:'J5',  year:2025, color:'Chiffon Ivory',            detail:'3 Doors · Gasoline · Automatic', dayuse:3400, hr24:3900 },
+    { id:'J13', name:'J13', year:2023, color:'Pacific Ocean Blue',        detail:'3 Doors · Gasoline · Automatic', dayuse:3400, hr24:3900 },
+    { id:'J16', name:'J16', year:2023, color:'Army Green × Cream Ivory', detail:'3 Doors · Gasoline · Automatic', dayuse:3400, hr24:3900 },
+    { id:'J17', name:'J17', year:2024, color:'Cream × Gold',             detail:'5 Doors · Gasoline · Automatic', dayuse:3900, hr24:4400 },
+    { id:'J18', name:'J18', year:2024, color:'Cream × Black',            detail:'5 Doors · Gasoline · Automatic', dayuse:3900, hr24:4400 },
+    { id:'J19', name:'J19', year:2024, color:'Black',                    detail:'5 Doors · Gasoline · Automatic', dayuse:3900, hr24:4400 },
+    { id:'J20', name:'J20', year:2024, color:'Black',                    detail:'5 Doors · Gasoline · Automatic', dayuse:3900, hr24:4400 },
+    { id:'J21', name:'J21', year:2024, color:'Black',                    detail:'5 Doors · Gasoline · Automatic', dayuse:3900, hr24:4400 },
+  ],
+  spresso: [
+    { id:'SP1', name:'SP1', year:null, color:'Granite Gray',        detail:'Manual · 4 Pax · Gasoline',    dayuse:2500, hr24:2500 },
+    { id:'SP2', name:'SP2', year:null, color:'Orange',              detail:'Manual · 4 Pax · Gasoline',    dayuse:2500, hr24:2500 },
+    { id:'SP3', name:'SP3', year:null, color:'Orange',              detail:'Manual · 4 Pax · Gasoline',    dayuse:2500, hr24:2500 },
+    { id:'SP4', name:'SP4', year:null, color:'Granite Gray',        detail:'Automatic · 4 Pax · Gasoline', dayuse:2700, hr24:3200 },
+    { id:'SP8', name:'SP8', year:null, color:'White Pearl × Orange',detail:'Automatic · 4 Pax · Gasoline', dayuse:2700, hr24:3200 },
+    { id:'SP5', name:'SP5', year:null, color:'White Pearl',         detail:'Automatic · 4 Pax · Gasoline', dayuse:3000, hr24:3500 },
+    { id:'SP6', name:'SP6', year:null, color:'White Pearl',         detail:'Automatic · 4 Pax · Gasoline', dayuse:3000, hr24:3500 },
+    { id:'SP7', name:'SP7', year:null, color:'White Pearl',         detail:'Automatic · 4 Pax · Gasoline', dayuse:3000, hr24:3500 },
+  ],
+  mpvsuv: [
+    { id:'MG1',      name:'MG 1',      year:null, color:'White',         detail:'Automatic · 5 Pax', dayuse:3000, hr24:3500 },
+    { id:'MG2',      name:'MG 2',      year:null, color:'Black',         detail:'Automatic · 5 Pax', dayuse:3000, hr24:3500 },
+    { id:'JUKE1',    name:'Juke 1',    year:null, color:'White',         detail:'Automatic · 4 Pax', dayuse:3500, hr24:4000 },
+    { id:'PRADO1',   name:'Prado 1',   year:null, color:'White',         detail:'Automatic · 7 Pax', dayuse:4500, hr24:5000 },
+    { id:'GAC1',     name:'GAC 1',     year:null, color:'Crystal White', detail:'Automatic · 7 Pax', dayuse:6500, hr24:7000 },
+    { id:'EVEREST1', name:'Everest 1', year:null, color:'White',         detail:'Automatic · 7 Pax', dayuse:4500, hr24:5000 },
+    { id:'RANGER1',  name:'Ranger 1',  year:null, color:'Silver',        detail:'Automatic · 5 Pax', dayuse:5000, hr24:5500 },
+  ],
+  stargazer: [
+    { id:'SG_SILVER_PREMIUM', name:'Stargazer', year:null, color:'Silver', detail:'Premium · Automatic · 7 Pax · Gasoline', dayuse:4000, hr24:4500 },
+    { id:'SG_SILVER_STD',     name:'Stargazer', year:null, color:'Silver', detail:'Standard · Automatic · 7 Pax · Gasoline', dayuse:3500, hr24:4000 },
+    { id:'SG_WHITE_STD',      name:'Stargazer', year:null, color:'White',  detail:'Standard · Automatic · 7 Pax · Gasoline', dayuse:3500, hr24:4000 },
+  ]
+};
+
+const TRANSPORT_VEHICLES = [
+  { id:'TR_TRANSIT', name:'Ford Transit', detail:'14 Seaters · Silver × Black', includedPax:5, extraPaxFee:400, perWay:3500 },
+  { id:'TR_GAC',     name:'GAC',          detail:'7 Seaters · Pearl White w/ Sunroof', includedPax:4, extraPaxFee:400, perWay:3500 },
+  { id:'TR_SG',      name:'Stargazer',    detail:'7 Seaters · Pearl White / Silver',   includedPax:4, extraPaxFee:400, perWay:2500 },
+];
+
+const TOUR_VEHICLES = [
+  { id:'TOUR_TRANSIT', name:'Ford Transit', detail:'14 Seaters · Gray · Driver Included', maxPax:14, rate10hr:8200 },
+  { id:'TOUR_BUGGY',   name:'Dune Buggy',   detail:'3 Seaters · Orange · Driver Included', maxPax:3, rate10hr:4000 },
+  { id:'TOUR_GAC',     name:'GAC',          detail:'7 Seaters · Pearl White · Driver Included', maxPax:7, rate10hr:7500 },
+];
+
+const DELIVERY_RATES = [
+  { loc:'General Luna', rate:350 },
+  { loc:'Malinao · Libertad', rate:900 },
+  { loc:'Sta. Fe', rate:1400 },
+  { loc:'Dapa · Union', rate:1700 },
+  { loc:'Airport · Pilar · Maasin', rate:2200 },
+  { loc:'North · Pacifico', rate:2700 },
+];
+
+// =====================
+// STATE
+// =====================
+let state = {
+  serviceType: 'selfDrive',
+  vehicleCategory: 'jimny',
+  selectedVehicle: null,
+  rentalType: 'dayuse',
+  days: 1,
+  scheduledDays: 1,
+  isEarlyReturn: false,
+  savedDays: 0,
+  withDriver: false,
+  deliveryLocation: null,
+  deliveryAddress: '',
+  deliveryRate: 0,
+  deliveryMode: 'self',
+  selfPickup: false,
+  pickupLocation: 'CRA Office (Client Return)',
+  pickupAddress: '',
+  pickupRate: 0,
+  returnMode: 'office',
+  selfReturn: false,
+  hoursLate: 0,
+  deliverySurchargeHours: 0,
+  returnSurchargeHours: 0,
+  priceOverride: null,
+  transportPriceOverride: null,
+  // transport
+  selectedTransport: null,
+  trips: 1,
+  extraPax: 0,
+  // tour
+  selectedTour: null,
+  tours: 1,
+  quoteCounter: 1,
+};
+
+// =====================
+// DATE CALC
+// =====================
+// SYNC DEFAULT TIMES
+// =====================
+function syncDefaultTimes() {
+  const returnTimeEl = document.getElementById('returnTime');
+  if (!returnTimeEl) return;
+
+  // Only auto-set if user hasn't manually changed it
+  if (returnTimeEl.dataset.manualSet === 'true') return;
+
+  if (state.rentalType === 'dayuse') {
+    // Day Use: default return time is always 7:00 PM
+    returnTimeEl.value = '19:00';
+  } else {
+    // 24hr: default return time = same as delivery time
+    const delivTime = document.getElementById('deliveryTime').value;
+    if (delivTime) {
+      returnTimeEl.value = delivTime;
+    }
+  }
+
+  // Trigger recalcs after setting
+  calcSurcharge();
+}
+
+function updateReturnDateDisplay() {
+  const val = document.getElementById('returnDateInput').value;
+  const display = document.getElementById('returnDateDisplay');
+  if (display) display.textContent = val ? new Date(val + 'T00:00:00').toLocaleDateString('en-PH', { year:'numeric', month:'short', day:'numeric' }) : '';
+}
+
+function updateRentalDateDisplays() {
+  const startVal = document.getElementById('rentalStart').value;
+  const endVal   = document.getElementById('rentalEnd').value;
+  const fmt = (v) => v ? new Date(v + 'T00:00:00').toLocaleDateString('en-PH', { year:'numeric', month:'short', day:'numeric' }) : '';
+  const sd = document.getElementById('rentalStartDisplay');
+  const ed = document.getElementById('rentalEndDisplay');
+  if (sd) sd.textContent = fmt(startVal);
+  if (ed) ed.textContent = fmt(endVal);
+}
+
+// =====================
+function calcFromDates() {
+  const startVal = document.getElementById('rentalStart').value;
+  const endVal   = document.getElementById('rentalEnd').value;
+  if (!startVal || !endVal) return;
+
+  const start     = new Date(startVal + 'T00:00:00');
+  const scheduled = new Date(endVal   + 'T00:00:00');
+
+  updateRentalDateDisplays();
+
+  if (scheduled < start) {
+    document.getElementById('rentalEnd').value = startVal;
+    calcFromDates();
+    return;
+  }
+
+  const scheduledDiff = Math.round((scheduled - start) / (1000 * 60 * 60 * 24));
+
+  if (scheduledDiff === 0) {
+    state.rentalType = 'dayuse';
+    state.scheduledDays = 1;
+  } else {
+    state.rentalType = '24hr';
+    state.scheduledDays = scheduledDiff;
+  }
+
+  state.days = state.scheduledDays;
+  state.isEarlyReturn = false;
+  state.savedDays = 0;
+
+  // Reset return time manual flag when rental type changes so default re-applies
+  const returnTimeEl2 = document.getElementById('returnTime');
+  if (returnTimeEl2) returnTimeEl2.dataset.manualSet = 'false';
+
+  // Update UI indicators
+  document.getElementById('rtDayUse').classList.toggle('active', state.rentalType === 'dayuse');
+  document.getElementById('rt24hr').classList.toggle('active',   state.rentalType === '24hr');
+  document.getElementById('daysVal').textContent = state.days;
+
+  // Re-render cards
+  renderVehicleCards();
+
+  // Sync delivery date display (read-only, always = rental start)
+  const delivDisplay = document.getElementById('deliveryDateDisplay');
+  if (delivDisplay) delivDisplay.value = new Date(startVal+'T00:00:00').toLocaleDateString('en-PH',{year:'numeric',month:'short',day:'numeric'});
+
+  // Default return date input to scheduled end (if not already manually changed)
+  const returnDateEl = document.getElementById('returnDateInput');
+  if (returnDateEl && (!returnDateEl.value || returnDateEl.dataset.autoSet === 'true')) {
+    returnDateEl.value = endVal;
+    returnDateEl.dataset.autoSet = 'true';
+    updateReturnDateDisplay();
+  }
+
+  // Sync default return time based on rental type
+  syncDefaultTimes();
+
+  // Summary pill
+  const label = state.rentalType === 'dayuse'
+    ? 'Day Use (7AM–7PM) · 1 day'
+    : `24-Hour Rental · ${state.days} day(s)`;
+  document.getElementById('dateSummary').textContent = label;
+  document.getElementById('dateSummary').style.display = 'inline-block';
+
+  // Recalc late return
+  calcLateReturn();
+}
+
+// =====================
+// INIT
+// =====================
+function init() {
+  renderVehicleCards();
+  renderTransportCards();
+  renderTourCards();
+
+  // Set today's date as default
+  const today = new Date().toISOString().split('T')[0];
+  document.getElementById('rentalStart').value = today;
+  document.getElementById('rentalEnd').value   = today;
+  calcFromDates();
+  updateRentalDateDisplays();
+
+  // Listen to date changes
+  document.getElementById('rentalStart').addEventListener('change', calcFromDates);
+  document.getElementById('rentalEnd').addEventListener('change', calcFromDates);
+  document.getElementById('returnDateInput').addEventListener('change', function() {
+    this.dataset.autoSet = 'false'; // user manually changed it
+    calcSurcharge();
+    calcLateReturn();
+  });
+
+  // Service tabs
+  document.querySelectorAll('#serviceTabs .type-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('#serviceTabs .type-tab').forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      state.serviceType = tab.dataset.type;
+      switchServiceType();
+    });
+  });
+
+  // Category tabs
+  document.querySelectorAll('#categoryTabs .type-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('#categoryTabs .type-tab').forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      state.vehicleCategory = tab.dataset.cat;
+      state.selectedVehicle = null;
+      renderVehicleCards();
+    });
+  });
+
+  // Surcharge time inputs
+  document.getElementById('deliveryTime').addEventListener('change', calcSurcharge);
+  document.getElementById('returnTime').addEventListener('change', calcSurcharge);
+}
+
+// =====================
+// SURCHARGE CALC
+// =====================
+function calcSurcharge() {
+  const OFFICE_START = 7 * 60;  // 7:00 AM
+  const OFFICE_END   = 19 * 60; // 7:00 PM
+  const RATE = 50;
+
+  function parseTime(val) {
+    if (!val) return null;
+    const [h, m] = val.split(':').map(Number);
+    return h * 60 + m;
+  }
+
+  function fmtTime(val) {
+    if (!val) return '';
+    const [h, m] = val.split(':').map(Number);
+    const ampm = h >= 12 ? 'PM' : 'AM';
+    return `${h % 12 || 12}:${String(m).padStart(2,'0')} ${ampm}`;
+  }
+
+  const deliveryMins = parseTime(document.getElementById('deliveryTime').value);
+  const returnMins   = parseTime(document.getElementById('returnTime').value);
+  const isDayUse     = state.rentalType === 'dayuse';
+
+  let delivHrs = 0, returnHrs = 0;
+
+  // DELIVERY surcharge — only if delivery is before 7AM (both Day Use and 24hr)
+  const delivNote = document.getElementById('deliverySurchargeNote');
+  if (deliveryMins !== null) {
+    if (deliveryMins < OFFICE_START) {
+      delivHrs = Math.ceil((OFFICE_START - deliveryMins) / 60);
+      delivNote.innerHTML = `⏰ Release at ${fmtTime(document.getElementById('deliveryTime').value)} — ${delivHrs} hr(s) before office hours · Surcharge: ₱${(delivHrs * RATE).toLocaleString()}`;
+      delivNote.style.display = 'block';
+    } else {
+      delivNote.style.display = 'none';
+    }
+  } else {
+    delivNote.style.display = 'none';
+  }
+
+  // RETURN surcharge — applies when return is after 7PM OR before 7AM (outside office hours)
+  const retNote = document.getElementById('returnSurchargeNote');
+  if (returnMins !== null) {
+    let retHrsCalc = 0;
+    let retMsg = '';
+    if (returnMins > OFFICE_END) {
+      retHrsCalc = Math.ceil((returnMins - OFFICE_END) / 60);
+      retMsg = `${fmtTime(document.getElementById('returnTime').value)} — ${retHrsCalc} hr(s) after office hours`;
+    } else if (returnMins < OFFICE_START) {
+      retHrsCalc = Math.ceil((OFFICE_START - returnMins) / 60);
+      retMsg = `${fmtTime(document.getElementById('returnTime').value)} — ${retHrsCalc} hr(s) before office hours`;
+    }
+    if (retHrsCalc > 0) {
+      returnHrs = retHrsCalc;
+      retNote.innerHTML = `⏰ Return at ${retMsg} · Out-of-office surcharge: ₱${(returnHrs * RATE).toLocaleString()}`;
+      retNote.style.display = 'block';
+    } else {
+      returnHrs = 0;
+      retNote.style.display = 'none';
+    }
+  } else {
+    returnHrs = 0;
+    retNote.style.display = 'none';
+  }
+
+  state.deliverySurchargeHours = delivHrs;
+  state.returnSurchargeHours   = returnHrs;
+  const totalHrs = delivHrs + returnHrs;
+
+  const el = document.getElementById('totalSurchargePreview');
+  if (totalHrs > 0) {
+    let parts = [];
+    if (delivHrs > 0) parts.push(`Delivery: ${delivHrs} hr(s) × ₱${RATE} = ₱${(delivHrs * RATE).toLocaleString()}`);
+    if (returnHrs > 0) parts.push(`Return: ${returnHrs} hr(s) × ₱${RATE} = ₱${(returnHrs * RATE).toLocaleString()}`);
+    el.innerHTML = `🕐 Total out-of-office surcharge: <strong>₱${(totalHrs * RATE).toLocaleString()}</strong> · ${parts.join(' · ')}`;
+    el.style.display = 'block';
+  } else {
+    el.style.display = 'none';
+  }
+
+  // Show Day Use deadline hint in return block
+  const deadlineNote = document.getElementById('dayUseDeadlineNote');
+  if (isDayUse && deliveryMins !== null) {
+    const deadlineMinsHint = Math.min(deliveryMins + 720, 19 * 60);
+    const dHH = Math.floor(deadlineMinsHint / 60);
+    const dMM = deadlineMinsHint % 60;
+    const dStrHint = `${dHH % 12 || 12}:${String(dMM).padStart(2,'0')} ${dHH >= 12 ? 'PM' : 'AM'}`;
+    const reasonHint = deliveryMins + 720 > 19 * 60 ? 'release time + 12hrs exceeds 7PM — capped at office close' : 'release time + 12hrs';
+    deadlineNote.innerHTML = `📋 Day Use deadline: <strong>${dStrHint}</strong> (${reasonHint})`;
+    deadlineNote.style.display = 'block';
+  } else if (deadlineNote) {
+    deadlineNote.style.display = 'none';
+  }
+
+  // Always trigger late return calc after surcharge update
+  calcLateReturn();
+}
+
+function calcLateReturn() {
+  const el = document.getElementById('lateReturnPreview');
+  const startVal      = document.getElementById('rentalStart').value;
+  const endVal        = document.getElementById('rentalEnd').value;
+  const delivTimeVal  = document.getElementById('deliveryTime').value;
+  const returnDateVal = document.getElementById('returnDateInput') ? document.getElementById('returnDateInput').value : '';
+  const returnTimeVal = document.getElementById('returnTime').value;
+  const isDayUse      = state.rentalType === 'dayuse';
+
+  function fmtT(v) { if(!v) return ''; const [h,m]=v.split(':').map(Number); const ap=h>=12?'PM':'AM'; return `${h%12||12}:${String(m).padStart(2,'0')} ${ap}`; }
+  function fmtD(d) { if(!d) return ''; return new Date(d+'T00:00:00').toLocaleDateString('en-PH',{month:'short',day:'numeric',year:'numeric'}); }
+
+  let agreedDateTime;
+  let agreedLabel;
+
+  if (isDayUse) {
+    if (!startVal) {
+      state.hoursLate = 0;
+      el.style.cssText = 'background:var(--sand);border:1px solid var(--border);border-radius:8px;padding:10px 13px;font-size:12px;color:var(--text-muted);line-height:1.6;';
+      el.innerHTML = 'Set rental start date above to calculate.';
+      return;
+    }
+    if (!delivTimeVal) {
+      state.hoursLate = 0;
+      el.style.cssText = 'background:var(--sand);border:1px solid var(--border);border-radius:8px;padding:10px 13px;font-size:12px;color:var(--text-muted);line-height:1.6;';
+      el.innerHTML = 'Enter release time above to calculate Day Use deadline.';
+      return;
+    }
+    // Day Use: deadline = release time + 12hrs, capped at 7:00 PM
+    const [pdh, pdm] = delivTimeVal.split(':').map(Number);
+    const pickupMins = pdh * 60 + pdm;
+    const deadlineMins = Math.min(pickupMins + 720, 19 * 60);
+    const deadlineH = Math.floor(deadlineMins / 60);
+    const deadlineM = deadlineMins % 60;
+    agreedDateTime = new Date(startVal + 'T00:00:00');
+    agreedDateTime.setHours(deadlineH, deadlineM, 0, 0);
+    const deadlineStr = `${deadlineH % 12 || 12}:${String(deadlineM).padStart(2,'0')} ${deadlineH >= 12 ? 'PM' : 'AM'}`;
+    const reasonStr = pickupMins + 720 > 19 * 60 ? 'capped at 7:00 PM' : `release time + 12hrs`;
+    agreedLabel = `${fmtD(startVal)} at ${deadlineStr} (${reasonStr})`;
+  } else {
+    if (!startVal || !delivTimeVal) {
+      state.hoursLate = 0;
+      el.style.cssText = 'background:var(--sand);border:1px solid var(--border);border-radius:8px;padding:10px 13px;font-size:12px;color:var(--text-muted);line-height:1.6;';
+      el.innerHTML = 'Enter release time above to calculate agreed return.';
+      return;
+    }
+    const [dh, dm] = delivTimeVal.split(':').map(Number);
+    // Use scheduled return date (rentalEnd) directly
+    const scheduledReturnDate = endVal || startVal;
+    agreedDateTime = new Date(scheduledReturnDate + 'T00:00:00');
+    agreedDateTime.setHours(dh, dm, 0, 0);
+    agreedLabel = `${fmtD(scheduledReturnDate)} at ${fmtT(delivTimeVal)}`;
+  }
+
+  if (!returnDateVal || !returnTimeVal) {
+    state.hoursLate = 0;
+    el.style.cssText = 'background:var(--sand);border:1px solid var(--border);border-radius:8px;padding:10px 13px;font-size:12px;color:var(--text-muted);line-height:1.6;';
+    el.innerHTML = `Agreed return: <strong>${agreedLabel}</strong><br>Enter actual return date and time above to calculate.`;
+    return;
+  }
+
+  const [rh, rm] = returnTimeVal.split(':').map(Number);
+  const actualDateTime = new Date(returnDateVal + 'T00:00:00');
+  actualDateTime.setHours(rh, rm, 0, 0);
+
+  const diffMins = Math.round((actualDateTime - agreedDateTime) / 60000);
+
+  if (diffMins <= 0) {
+    state.hoursLate = 0;
+    el.style.cssText = 'background:rgba(42,122,122,0.05);border:1px solid rgba(42,122,122,0.2);border-radius:8px;padding:10px 13px;font-size:12px;color:var(--teal-dark);line-height:1.6;';
+    el.innerHTML = `✅ Agreed return: <strong>${agreedLabel}</strong><br>Actual return: <strong>${fmtD(returnDateVal)} at ${fmtT(returnTimeVal)}</strong><br><strong>Returned on time — no late return charge.</strong>`;
+    return;
+  }
+
+  const hoursLate = Math.ceil(diffMins / 60);
+  state.hoursLate = hoursLate;
+
+  const rate = state.selectedVehicle
+    ? (state.priceOverride !== null ? state.priceOverride : (isDayUse ? state.selectedVehicle.dayuse : state.selectedVehicle.hr24))
+    : null;
+
+  if (rate) {
+    const hourlyCharge = Math.round(rate * 0.10);
+    const total = hourlyCharge * hoursLate;
+    el.style.cssText = 'background:rgba(200,40,40,0.06);border:1px solid rgba(200,40,40,0.15);border-radius:8px;padding:10px 13px;font-size:12px;color:var(--text-muted);line-height:1.6;';
+    el.innerHTML = `⏱ Agreed return: <strong>${agreedLabel}</strong><br>` +
+                   `Actual return: <strong>${fmtD(returnDateVal)} at ${fmtT(returnTimeVal)}</strong><br>` +
+                   `${diffMins} min(s) late → rounded up to <strong>${hoursLate} hr(s)</strong><br>` +
+                   `10% of ₱${Number(rate).toLocaleString()} = ₱${hourlyCharge.toLocaleString()}/hr × ${hoursLate} hr(s) = <strong style="color:#c0392b">₱${total.toLocaleString()}</strong>`;
+  } else {
+    el.style.cssText = 'background:rgba(200,40,40,0.06);border:1px solid rgba(200,40,40,0.15);border-radius:8px;padding:10px 13px;font-size:12px;color:var(--text-muted);line-height:1.6;';
+    el.innerHTML = `⏱ Agreed: <strong>${agreedLabel}</strong> · Actual: <strong>${fmtD(returnDateVal)} at ${fmtT(returnTimeVal)}</strong><br>` +
+                   `<strong>${hoursLate} hr(s) late</strong> — select a vehicle to see the charge.`;
+  }
+}
+
+function switchServiceType() {
+  document.getElementById('selfDriveSection').classList.toggle('hidden', state.serviceType !== 'selfDrive');
+  document.getElementById('transportSection').classList.toggle('hidden', state.serviceType !== 'transport');
+  document.getElementById('tourSection').classList.toggle('hidden', state.serviceType !== 'tour');
+}
+
+// =====================
+// RENDER VEHICLE CARDS
+// =====================
+function renderVehicleCards() {
+  const container = document.getElementById('vehicleCards');
+  const vehicles = VEHICLES[state.vehicleCategory] || [];
+  container.innerHTML = vehicles.map(v => {
+    const price = state.rentalType === 'dayuse' ? v.dayuse : v.hr24;
+    const isSelected = state.selectedVehicle && state.selectedVehicle.id === v.id;
+    const yearTag = v.year ? ` <span style="font-size:12px;font-weight:400;color:var(--text-muted)">(${v.year})</span>` : '';
+    const overrideHtml = isSelected ? `
+      <div class="price-override" onclick="event.stopPropagation()">
+        <span class="po-label">Override price:</span>
+        <div class="po-input-wrap">
+          <span class="po-peso">₱</span>
+          <input class="po-input" type="number" id="priceOverride" value="${state.priceOverride !== null ? state.priceOverride : price}" min="0" oninput="applyPriceOverride(this.value)" />
+        </div>
+        <button class="po-reset" onclick="resetPriceOverride('${v.id}')">Reset</button>
+      </div>
+    ` : '';
+    const displayPrice = isSelected && state.priceOverride !== null ? state.priceOverride : price;
+    return `
+      <div class="vehicle-card ${isSelected ? 'selected' : ''}" onclick="selectVehicle('${v.id}')">
+        <div style="flex:1">
+          <div class="vc-name">${v.name}${yearTag}</div>
+          <div class="vc-detail">${v.color} · ${v.detail}</div>
+          ${overrideHtml}
+        </div>
+        <div class="vc-prices">
+          <div class="vc-price-main ${isSelected && state.priceOverride !== null ? 'price-overridden' : ''}">₱${Number(displayPrice).toLocaleString()}</div>
+          <div class="vc-price-label">${state.rentalType === 'dayuse' ? 'Day Use' : '24hr'}</div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function renderTransportCards() {
+  const container = document.getElementById('transportCards');
+  container.innerHTML = TRANSPORT_VEHICLES.map(v => {
+    const isSelected = state.selectedTransport && state.selectedTransport.id === v.id;
+    const overrideHtml = isSelected ? `
+      <div class="price-override" onclick="event.stopPropagation()">
+        <span class="po-label">Override price:</span>
+        <div class="po-input-wrap">
+          <span class="po-peso">₱</span>
+          <input class="po-input" type="number" id="transportPriceOverride" value="${state.transportPriceOverride !== null ? state.transportPriceOverride : v.perWay}" min="0" oninput="applyTransportPriceOverride(this.value)" />
+        </div>
+        <button class="po-reset" onclick="resetTransportPriceOverride('${v.id}')">Reset</button>
+      </div>
+    ` : '';
+    const displayPrice = isSelected && state.transportPriceOverride !== null ? state.transportPriceOverride : v.perWay;
+    return `
+      <div class="vehicle-card ${isSelected ? 'selected' : ''}" onclick="selectTransport('${v.id}')">
+        <div style="flex:1">
+          <div class="vc-name">${v.name}</div>
+          <div class="vc-detail">${v.detail}</div>
+          <div class="vc-detail">Includes ${v.includedPax} pax</div>
+          ${overrideHtml}
+        </div>
+        <div class="vc-prices">
+          <div class="vc-price-main ${isSelected && state.transportPriceOverride !== null ? 'price-overridden' : ''}">₱${Number(displayPrice).toLocaleString()}</div>
+          <div class="vc-price-label">per way</div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function renderTourCards() {
+  const container = document.getElementById('tourCards');
+  container.innerHTML = TOUR_VEHICLES.map(v => {
+    const isSelected = state.selectedTour && state.selectedTour.id === v.id;
+    return `
+      <div class="vehicle-card ${isSelected ? 'selected' : ''}" onclick="selectTour('${v.id}')">
+        <div>
+          <div class="vc-name">${v.name}</div>
+          <div class="vc-detail">${v.detail}</div>
+          <div class="vc-detail">Max ${v.maxPax} pax</div>
+        </div>
+        <div class="vc-prices">
+          <div class="vc-price-main">₱${v.rate10hr.toLocaleString()}</div>
+          <div class="vc-price-label">10 hours</div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function renderDeliveryGrid() {
+  const dg = document.getElementById('deliveryGrid');
+  const pg = document.getElementById('pickupGrid');
+  const html = DELIVERY_RATES.map(d => `
+    <div class="delivery-option ${state.deliveryLocation === d.loc ? 'active' : ''}" onclick="selectDelivery('${d.loc}', ${d.rate})">
+      <div class="do-loc">${d.loc}</div>
+      <div class="do-price">₱${d.rate.toLocaleString()}/way</div>
+    </div>
+  `).join('');
+  const html2 = DELIVERY_RATES.map(d => `
+    <div class="delivery-option ${state.pickupLocation === d.loc ? 'active' : ''}" onclick="selectPickup('${d.loc}', ${d.rate})">
+      <div class="do-loc">${d.loc}</div>
+      <div class="do-price">₱${d.rate.toLocaleString()}/way</div>
+    </div>
+  `).join('');
+  dg.innerHTML = html;
+  pg.innerHTML = html2;
+}
+
+// =====================
+// ACTIONS
+// =====================
+function selectVehicle(id) {
+  const vehicles = VEHICLES[state.vehicleCategory];
+  state.selectedVehicle = vehicles.find(v => v.id === id);
+  state.priceOverride = null;
+  renderVehicleCards();
+  calcLateReturn();
+}
+
+function selectTransport(id) {
+  state.selectedTransport = TRANSPORT_VEHICLES.find(v => v.id === id);
+  state.transportPriceOverride = null;
+  renderTransportCards();
+}
+
+function applyPriceOverride(val) {
+  const num = parseFloat(val);
+  state.priceOverride = isNaN(num) || num < 0 ? null : num;
+}
+
+function resetPriceOverride(id) {
+  state.priceOverride = null;
+  renderVehicleCards();
+}
+
+function applyTransportPriceOverride(val) {
+  const num = parseFloat(val);
+  state.transportPriceOverride = isNaN(num) || num < 0 ? null : num;
+}
+
+function resetTransportPriceOverride(id) {
+  state.transportPriceOverride = null;
+  renderTransportCards();
+}
+
+function selectTour(id) {
+  state.selectedTour = TOUR_VEHICLES.find(v => v.id === id);
+  renderTourCards();
+}
+
+function selectRentalType(type) {
+  // Rental type is now auto-calculated from dates — this is display-only
+}
+
+function changeDays(delta) {
+  // Days are now auto-calculated from dates — this is display-only
+}
+
+function changeTrips(delta) {
+  state.trips = Math.max(1, state.trips + delta);
+  document.getElementById('tripsVal').textContent = state.trips;
+}
+
+function changeExtraPax(delta) {
+  state.extraPax = Math.max(0, state.extraPax + delta);
+  document.getElementById('extraPaxVal').textContent = state.extraPax;
+}
+
+function changeTours(delta) {
+  state.tours = Math.max(1, state.tours + delta);
+  document.getElementById('toursVal').textContent = state.tours;
+}
+
+function toggleAddon(type) {
+  if (type === 'driver') {
+    state.withDriver = !state.withDriver;
+    document.getElementById('addonDriver').classList.toggle('active', state.withDriver);
+    document.getElementById('driverNameSection').style.display = state.withDriver ? 'block' : 'none';
+    if (!state.withDriver) document.getElementById('driverName').value = '';
+  }
+}
+
+function setDeliveryMode(mode) {
+  state.deliveryMode = mode;
+  document.getElementById('deliveryModeSelf').classList.toggle('active', mode === 'self');
+  document.getElementById('deliveryModeDeliver').classList.toggle('active', mode === 'deliver');
+  document.getElementById('deliveryLocationFields').style.display = mode === 'deliver' ? 'block' : 'none';
+  if (mode === 'self') {
+    state.deliveryLocation = 'CRA Office (Self Pick-up)';
+    state.deliveryAddress = '';
+    state.deliveryRate = 0;
+    document.getElementById('deliveryRatePreview').style.display = 'none';
+  } else {
+    state.deliveryLocation = null;
+    state.deliveryRate = 0;
+  }
+}
+
+function setReturnMode(mode) {
+  state.returnMode = mode;
+  document.getElementById('returnModeOffice').classList.toggle('active', mode === 'office');
+  document.getElementById('returnModePickup').classList.toggle('active', mode === 'pickup');
+  document.getElementById('pickupLocationFields').style.display = mode === 'pickup' ? 'block' : 'none';
+  if (mode === 'office') {
+    state.pickupLocation = 'CRA Office (Client Return)';
+    state.pickupAddress = '';
+    state.pickupRate = 0;
+    document.getElementById('pickupRatePreview').style.display = 'none';
+  } else {
+    state.pickupLocation = null;
+    state.pickupRate = 0;
+  }
+}
+
+function toggleSelfPickup() {}
+function toggleSelfReturn() {}
+function updateDeliveryArea() {}
+function updatePickupArea() {}
+
+function updateDeliveryRate() {
+  const val = document.getElementById('deliveryArea').value;
+  const preview = document.getElementById('deliveryRatePreview');
+  if (!val) {
+    state.deliveryLocation = null;
+    state.deliveryRate = 0;
+    preview.style.display = 'none';
+    return;
+  }
+  const [loc, rate] = val.split('|');
+  state.deliveryLocation = loc;
+  state.deliveryRate = parseInt(rate);
+  preview.textContent = `Delivery to ${loc} — ₱${parseInt(rate).toLocaleString()}`;
+  preview.style.display = 'block';
+}
+
+function updatePickupRate() {
+  const val = document.getElementById('pickupArea').value;
+  const preview = document.getElementById('pickupRatePreview');
+  if (!val) {
+    state.pickupLocation = null;
+    state.pickupRate = 0;
+    preview.style.display = 'none';
+    return;
+  }
+  const [loc, rate] = val.split('|');
+  state.pickupLocation = loc;
+  state.pickupRate = parseInt(rate);
+  preview.textContent = `Pick-up from ${loc} — ₱${parseInt(rate).toLocaleString()}`;
+  preview.style.display = 'block';
+}
+
+// =====================
+// GENERATE QUOTE
+// =====================
+function generateQuote() {
+  const clientName = document.getElementById('clientName').value.trim() || 'Walk-in Customer';
+  const clientContact = document.getElementById('clientContact').value.trim() || '—';
+  const clientEmail = document.getElementById('clientEmail').value.trim() || '—';
+  const clientHotel = document.getElementById('clientHotel').value.trim() || '—';
+  const rentalStart = document.getElementById('rentalStart').value;
+  const rentalEnd = document.getElementById('rentalEnd').value;
+  const notes = document.getElementById('quoteNotes').value.trim();
+
+  let vehicleName = '—', vehicleDetail = '—', vehicleRateVal = '—', vehicleRateLabel = 'per day';
+  let lineItems = [];
+  let subtotal = 0;
+
+  if (state.serviceType === 'selfDrive') {
+    if (!state.selectedVehicle) { alert('Please select a vehicle.'); return; }
+    const v = state.selectedVehicle;
+    const baseRate = state.rentalType === 'dayuse' ? v.dayuse : v.hr24;
+    const rate = state.priceOverride !== null ? state.priceOverride : baseRate;
+    const rentalLabel = state.rentalType === 'dayuse' ? 'Day Use (7AM–7PM)' : '24-Hour Rental';
+    vehicleName = v.name;
+    vehicleDetail = `${v.color} · ${v.detail}`;
+    vehicleRateVal = `₱${rate.toLocaleString()}`;
+    vehicleRateLabel = state.rentalType === 'dayuse' ? 'day use rate' : '24hr rate';
+    if (state.priceOverride !== null) vehicleRateLabel += ' (custom)';
+
+    const rentalTotal = rate * state.days;
+    const earlyReturnNote = state.isEarlyReturn
+      ? `Unit returned ${state.savedDays} day(s) early · full scheduled charge applies`
+      : null;
+    lineItems.push({ desc: `${v.name} – ${rentalLabel} × ${state.days} day(s)`, amount: rentalTotal, note: earlyReturnNote });
+    subtotal += rentalTotal;
+
+    if (state.withDriver) {
+      const driverTotal = 1000 * state.days;
+      lineItems.push({ desc: `Driver Service × ${state.days} day(s)`, amount: driverTotal });
+      subtotal += driverTotal;
+    }
+
+    const dTime = document.getElementById('deliveryTime').value;
+    const rTime = document.getElementById('returnTime').value;
+    function fmtTime(v) { if(!v) return ''; const [h,m]=v.split(':').map(Number); const ap=h>=12?'PM':'AM'; return `${h%12||12}:${String(m).padStart(2,'0')} ${ap}`; }
+    function fmtDate(d) { return d ? new Date(d+'T00:00:00').toLocaleDateString('en-PH',{year:'numeric',month:'short',day:'numeric'}) : ''; }
+
+    const releaseDateStr = fmtDate(rentalStart);
+    const returnDateStr  = fmtDate(document.getElementById('returnDateInput') ? document.getElementById('returnDateInput').value || rentalEnd : rentalEnd);
+
+    // UNIT RELEASE — always show
+    if (state.deliveryMode === 'deliver' && state.deliveryLocation) {
+      const addr = state.deliveryAddress
+        ? `${state.deliveryAddress}, ${state.deliveryLocation}`
+        : state.deliveryLocation;
+      lineItems.push({
+        desc: `Unit Release`,
+        amount: state.deliveryRate,
+        lines: [
+          `CRA delivers vehicle to customer`,
+          releaseDateStr ? `Date: ${releaseDateStr}` : null,
+          dTime ? `Time: ${fmtTime(dTime)}` : null,
+          `Location: ${addr}`
+        ].filter(Boolean)
+      });
+      subtotal += state.deliveryRate;
+    } else {
+      lineItems.push({
+        desc: `Unit Release`,
+        amount: 0,
+        lines: [
+          `Customer self pick-up at CRA Office`,
+          releaseDateStr ? `Date: ${releaseDateStr}` : null,
+          dTime ? `Time: ${fmtTime(dTime)}` : null,
+          `No charge`
+        ].filter(Boolean)
+      });
+    }
+
+    // UNIT RETURN — always show
+    if (state.returnMode === 'pickup' && state.pickupLocation) {
+      const addr = state.pickupAddress
+        ? `${state.pickupAddress}, ${state.pickupLocation}`
+        : state.pickupLocation;
+      lineItems.push({
+        desc: `Unit Return`,
+        amount: state.pickupRate,
+        lines: [
+          `CRA collects vehicle from customer`,
+          returnDateStr ? `Date: ${returnDateStr}` : null,
+          rTime ? `Time: ${fmtTime(rTime)}` : null,
+          `Location: ${addr}`,
+          `Any fuel top-up will be deducted from the security deposit`
+        ].filter(Boolean)
+      });
+      subtotal += state.pickupRate;
+    } else {
+      lineItems.push({
+        desc: `Unit Return`,
+        amount: 0,
+        lines: [
+          `Customer returns vehicle to CRA Office`,
+          returnDateStr ? `Date: ${returnDateStr}` : null,
+          rTime ? `Time: ${fmtTime(rTime)}` : null,
+          `No charge`
+        ].filter(Boolean)
+      });
+    }
+
+    const totalSurchargeHrs = state.deliverySurchargeHours + state.returnSurchargeHours;
+    if (totalSurchargeHrs > 0) {
+      const surchargeTotal = totalSurchargeHrs * 50;
+      const dTimeVal = document.getElementById('deliveryTime').value;
+      const rTimeVal = document.getElementById('returnTime').value;
+      function fmtTS(v) { if(!v) return ''; const [h,m]=v.split(':').map(Number); const ap=h>=12?'PM':'AM'; return `${h%12||12}:${String(m).padStart(2,'0')} ${ap}`; }
+      const surchargeLines = [];
+      if (state.deliverySurchargeHours > 0) {
+        const amt = state.deliverySurchargeHours * 50;
+        surchargeLines.push(
+          `Vehicle Release (${fmtTS(dTimeVal)})`,
+          `${state.deliverySurchargeHours} hour(s) outside office hours × ₱50 = ₱${amt.toLocaleString()}`
+        );
+      }
+      if (state.returnSurchargeHours > 0) {
+        const rMins = rTimeVal ? (() => { const [h,m]=rTimeVal.split(':').map(Number); return h*60+m; })() : 0;
+        const rDir = rMins > 19*60 ? 'after office hours' : 'before office hours';
+        const amt = state.returnSurchargeHours * 50;
+        if (state.deliverySurchargeHours > 0) surchargeLines.push(`---`);
+        surchargeLines.push(
+          `Vehicle Return (${fmtTS(rTimeVal)})`,
+          `${state.returnSurchargeHours} hour(s) ${rDir} × ₱50 = ₱${amt.toLocaleString()}`
+        );
+      }
+      lineItems.push({ desc: `Out-of-Office Hours Surcharge`, amount: surchargeTotal, lines: surchargeLines });
+      subtotal += surchargeTotal;
+    }
+
+    // Late return charge
+    if (state.hoursLate > 0) {
+      const hourlyCharge = Math.round(rate * 0.10);
+      const lateTotal = hourlyCharge * state.hoursLate;
+      const returnDateVal = document.getElementById('returnDateInput') ? document.getElementById('returnDateInput').value : '';
+      const returnTimeVal = document.getElementById('returnTime').value;
+      function fmtTLR(v) { if(!v) return ''; const [h,m]=v.split(':').map(Number); const ap=h>=12?'PM':'AM'; return `${h%12||12}:${String(m).padStart(2,'0')} ${ap}`; }
+      function fmtDLR(d) { return d ? new Date(d+'T00:00:00').toLocaleDateString('en-PH',{month:'short',day:'numeric',year:'numeric'}) : ''; }
+
+      let expectedReturn;
+      if (state.rentalType === 'dayuse') {
+        const delivTimeVal2 = document.getElementById('deliveryTime').value;
+        if (delivTimeVal2) {
+          const [pdh2, pdm2] = delivTimeVal2.split(':').map(Number);
+          const pickupMins2 = pdh2 * 60 + pdm2;
+          const deadlineMins2 = Math.min(pickupMins2 + 720, 19 * 60);
+          const dH2 = Math.floor(deadlineMins2 / 60);
+          const dM2 = deadlineMins2 % 60;
+          const dStr2 = `${dH2 % 12 || 12}:${String(dM2).padStart(2,'0')} ${dH2 >= 12 ? 'PM' : 'AM'}`;
+          expectedReturn = `${fmtDLR(rentalStart)}, ${dStr2}`;
+        } else {
+          expectedReturn = `${fmtDLR(rentalStart)}, 7:00 PM`;
+        }
+      } else {
+        const delivTimeVal3 = document.getElementById('deliveryTime').value;
+        expectedReturn = `${fmtDLR(rentalEnd)}, ${fmtTLR(delivTimeVal3)}`;
+      }
+
+      lineItems.push({
+        desc: `Late Return Charge`,
+        amount: lateTotal,
+        lines: [
+          `Expected Return: ${expectedReturn}`,
+          `Actual Return: ${fmtDLR(returnDateVal)}, ${fmtTLR(returnTimeVal)}`,
+          `Delay: ${state.hoursLate} hour(s)`,
+          `Hourly Late Fee: ₱${hourlyCharge.toLocaleString()} (10% of daily rental rate)`,
+          `${state.hoursLate} hour(s) × ₱${hourlyCharge.toLocaleString()} = ₱${lateTotal.toLocaleString()}`
+        ]
+      });
+      subtotal += lateTotal;
+    }
+
+  } else if (state.serviceType === 'transport') {
+    if (!state.selectedTransport) { alert('Please select a transport vehicle.'); return; }
+    const v = state.selectedTransport;
+    const perWay = state.transportPriceOverride !== null ? state.transportPriceOverride : v.perWay;
+
+    vehicleName = v.name;
+    vehicleDetail = `${v.detail} · Includes ${v.includedPax} pax`;
+    vehicleRateVal = `₱${perWay.toLocaleString()}`;
+    vehicleRateLabel = state.transportPriceOverride !== null ? 'per way (custom)' : 'per way';
+
+    const baseTotal = perWay * state.trips;
+    lineItems.push({ desc: `${v.name} – Private Transfer × ${state.trips} trip(s)`, amount: baseTotal });
+    subtotal += baseTotal;
+
+    if (state.extraPax > 0) {
+      const paxTotal = v.extraPaxFee * state.extraPax * state.trips;
+      lineItems.push({ desc: `Extra Passengers – ${state.extraPax} pax × ₱${v.extraPaxFee} × ${state.trips} trip(s)`, amount: paxTotal });
+      subtotal += paxTotal;
+    }
+
+  } else if (state.serviceType === 'tour') {
+    if (!state.selectedTour) { alert('Please select a tour vehicle.'); return; }
+    const v = state.selectedTour;
+
+    vehicleName = v.name;
+    vehicleDetail = `${v.detail}`;
+    vehicleRateVal = `₱${v.rate10hr.toLocaleString()}`;
+    vehicleRateLabel = '10-hour tour';
+
+    const tourTotal = v.rate10hr * state.tours;
+    lineItems.push({ desc: `${v.name} – Island Tour (10hrs) × ${state.tours} tour(s)`, amount: tourTotal });
+    lineItems.push({ desc: 'Fuel cost', amount: null, note: 'Exclusive — to be shouldered by renter' });
+    subtotal += tourTotal;
+  }
+
+  // Populate quote doc
+  document.getElementById('docDate').innerHTML = `Issued: ${new Date().toLocaleDateString('en-PH', { year:'numeric', month:'long', day:'numeric' })}`;
+
+  document.getElementById('docClient').textContent = clientName;
+  document.getElementById('docContact').textContent = clientContact;
+  document.getElementById('docEmail').textContent = clientEmail;
+  document.getElementById('docHotel').textContent = clientHotel;
+
+  const fmt = (d) => d ? new Date(d+'T00:00:00').toLocaleDateString('en-PH', { year:'numeric', month:'short', day:'numeric' }) : '—';
+  document.getElementById('docStart').textContent = fmt(rentalStart);
+  document.getElementById('docEnd').textContent = fmt(rentalEnd);
+
+  const actualReturnVal = document.getElementById('returnDateInput') ? document.getElementById('returnDateInput').value : '';
+  document.getElementById('docActualReturn').textContent = fmt(actualReturnVal) || '—';
+  const actualReturnField = document.getElementById('docActualReturnField');
+  if (actualReturnField) actualReturnField.style.display = 'block';
+
+  document.getElementById('docVehicleName').textContent = vehicleName;
+  document.getElementById('docVehicleDetail').textContent = vehicleDetail;
+  document.getElementById('docVehicleRate').textContent = vehicleRateVal;
+  document.getElementById('docVehicleRateLabel').textContent = vehicleRateLabel;
+
+  // Service badges
+  const badgesEl = document.getElementById('docServiceBadges');
+  const badges = [];
+  if (state.serviceType === 'selfDrive') {
+    if (state.deliveryMode === 'deliver' && state.deliveryLocation) {
+      badges.push(`<span class="service-badge service-badge--delivery">🚗 CRA Delivers Unit</span>`);
+    }
+    if (state.returnMode === 'pickup' && state.pickupLocation) {
+      badges.push(`<span class="service-badge service-badge--collection">🔄 CRA Collects Unit</span>`);
+    }
+  }
+  if (badges.length > 0) {
+    badgesEl.innerHTML = badges.join('');
+    badgesEl.style.display = 'flex';
+  } else {
+    badgesEl.style.display = 'none';
+  }
+
+  // Line items
+  const tbody = document.getElementById('lineItemsBody');
+  tbody.innerHTML = lineItems.map(item => {
+    let detailHtml = '';
+    if (item.lines && item.lines.length) {
+      const lineHtmlParts = item.lines.map((line) => {
+        if (!line) return '';
+        const isSeparator   = line === '---';
+        const isNoCharge    = line === 'No charge';
+        const isFuelNote    = line.startsWith('Any fuel');
+        const isEventLabel  = /^Vehicle (Release|Return) \(/.test(line);
+        const isKeyValue    = /^(Expected Return:|Actual Return:|Delay:|Hourly Late Fee:)/.test(line);
+        const isComputation = /×.*=\s*₱/.test(line);
+
+        if (isSeparator)   return `<span style="display:inline-block;width:100%;border-top:1px solid var(--border);margin:3px 0;"></span>`;
+        if (isNoCharge)    return `<span style="color:var(--teal);font-weight:600;font-size:11px;">No charge</span>`;
+        if (isFuelNote)    return `<span style="color:var(--text-muted);font-style:italic;font-size:10px;">${line}</span>`;
+        if (isEventLabel)  return `<span style="color:var(--text);font-weight:600;font-size:11px;margin-top:3px;display:inline-block;">${line}</span>`;
+        if (isKeyValue)    return `<span style="color:var(--text-muted);font-size:11px;">${line}</span>`;
+        if (isComputation) return `<span style="color:var(--teal-dark);font-weight:600;font-size:11px;font-family:'DM Mono',monospace;">${line}</span>`;
+        return `<span style="color:var(--text-muted);font-size:11px;">${line}</span>`;
+      });
+      detailHtml = lineHtmlParts.filter(Boolean).join('<br style="line-height:1.6">');
+    } else if (item.note) {
+      detailHtml = `<span style="font-size:11px;color:var(--text-muted);font-style:italic;">${item.note}</span>`;
+    }
+    const amountHtml = item.amount === 0
+      ? `<span style="color:var(--teal);font-weight:600;">₱0</span>`
+      : item.amount !== null && item.amount !== undefined
+        ? `₱${item.amount.toLocaleString()}`
+        : '—';
+    return `
+      <tr>
+        <td style="padding-bottom:10px;line-height:1.5;">
+          <strong style="font-size:13px;">${item.desc}</strong>${detailHtml ? `<br><span style="line-height:1.6;display:inline-block;">${detailHtml}</span>` : ''}
+        </td>
+        <td style="padding-bottom:10px;vertical-align:top;white-space:nowrap;">${amountHtml}</td>
+      </tr>
+    `;
+  }).join('');
+
+  document.getElementById('docSubtotal').textContent = '₱' + subtotal.toLocaleString();
+
+  // Discount
+  const discountInput = parseFloat(document.getElementById('discountAmount').value) || 0;
+  const discountReason = document.getElementById('discountReason').value.trim();
+  const discount = Math.min(discountInput, subtotal); // can't discount more than subtotal
+  const grandTotal = subtotal - discount;
+
+  const discountRow = document.getElementById('totalRowDiscount');
+  if (discount > 0) {
+    discountRow.style.display = 'flex';
+    document.getElementById('docDiscountLabel').textContent = discountReason ? `Discount – ${discountReason}` : 'Discount';
+    document.getElementById('docDiscount').textContent = `−₱${discount.toLocaleString()}`;
+  } else {
+    discountRow.style.display = 'none';
+  }
+
+  document.getElementById('docTotal').textContent = '₱' + grandTotal.toLocaleString();
+
+  const downpayment = Math.ceil(grandTotal / 2);
+  const balance = grandTotal - downpayment;
+  const pickupTotal = balance + 5000;
+
+  document.getElementById('docDownpayment').textContent = '₱' + downpayment.toLocaleString();
+  document.getElementById('docBalance').textContent = '₱' + balance.toLocaleString();
+  document.getElementById('docPickupTotal').textContent = '₱' + pickupTotal.toLocaleString();
+
+  // Notes
+  if (notes) {
+    document.getElementById('notesSection').classList.remove('hidden');
+    document.getElementById('docNotes').textContent = notes;
+  } else {
+    document.getElementById('notesSection').classList.add('hidden');
+  }
+
+  // Show doc
+  document.getElementById('emptyState').classList.add('hidden');
+  document.getElementById('quoteDoc').classList.remove('hidden');
+
+  // Scroll to quote
+  document.getElementById('quoteDoc').scrollIntoView({ behavior:'smooth', block:'start' });
+}
+
+function clearQuote() {
+  document.getElementById('emptyState').classList.remove('hidden');
+  document.getElementById('quoteDoc').classList.add('hidden');
+}
+
+init();
+</script>
+<script>
+// =====================
+// PWA SETUP
+// =====================
+
+// Inject manifest dynamically (so it works as a single HTML file)
+const manifest = {
+  name: "CRA Quotation Generator",
+  short_name: "CRA Quotes",
+  description: "Coastal Reef Adventure – Siargao Quotation Tool",
+  start_url: "./",
+  display: "standalone",
+  orientation: "portrait",
+  background_color: "#2a7a7a",
+  theme_color: "#2a7a7a",
+  icons: [
+    {
+      src: "data:image/svg+xml," + encodeURIComponent(`
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+          <rect width="512" height="512" rx="100" fill="#2a7a7a"/>
+          <circle cx="256" cy="256" r="180" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="8"/>
+          <path d="M130 256 Q180 160 256 210 Q332 260 256 340 Q180 410 130 310" fill="rgba(176,120,72,0.85)" stroke="rgba(176,120,72,1)" stroke-width="3"/>
+          <path d="M256 110 Q360 175 360 256 Q360 345 256 395" fill="none" stroke="rgba(255,255,255,0.7)" stroke-width="14" stroke-linecap="round"/>
+          <ellipse cx="256" cy="256" rx="80" ry="62" fill="rgba(255,255,255,0.15)"/>
+        </svg>
+      `),
+      sizes: "512x512",
+      type: "image/svg+xml",
+      purpose: "any maskable"
+    }
+  ]
+};
+
+const blob = new Blob([JSON.stringify(manifest)], { type: 'application/json' });
+const manifestURL = URL.createObjectURL(blob);
+document.getElementById('pwaManifest').setAttribute('href', manifestURL);
+
+// Register service worker for offline support
+if ('serviceWorker' in navigator) {
+  const swCode = `
+    const CACHE = 'cra-v1';
+    const ASSETS = ['/'];
+
+    self.addEventListener('install', e => {
+      e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS)));
+      self.skipWaiting();
+    });
+
+    self.addEventListener('activate', e => {
+      e.waitUntil(caches.keys().then(keys =>
+        Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k)))
+      ));
+      self.clients.claim();
+    });
+
+    self.addEventListener('fetch', e => {
+      e.respondWith(
+        fetch(e.request).catch(() => caches.match(e.request))
+      );
+    });
+  `;
+  const swBlob = new Blob([swCode], { type: 'application/javascript' });
+  const swURL  = URL.createObjectURL(swBlob);
+  navigator.serviceWorker.register(swURL).catch(() => {});
+}
+</script>
+</body>
+</html>
